@@ -1,0 +1,15 @@
+{
+  "name": "appmospherics",
+  "short_name": "appmospherics",
+  "description": "Measure the places you spend time and learn which environments help you feel your best.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EEF2F0",
+  "theme_color": "#EEF2F0",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

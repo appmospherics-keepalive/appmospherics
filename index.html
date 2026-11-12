@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>appmospherics</title>
+<meta name="description" content="Measure the places you spend time and learn which environments help you feel your best.">
+<meta name="theme-color" content="#EEF2F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111A22" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="appmospherics">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF2F0; --surface: #FFFFFF; --ink: #1D2B3A; --muted: #55666F; --line: #D3DCD8;
+  --accent: #1F7A74; --accent-ink: #FFFFFF; --accent-soft: #D9ECE9;
+  --green: #2E8B57; --amber: #B97F0C; --red: #C0412E; --none: #8A989E;
+  --display: "Bricolage Grotesque", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111A22; --surface: #18242E; --ink: #E6ECEA; --muted: #9AAAB0; --line: #2B3A45;
+    --accent: #4FB3AA; --accent-ink: #0E1A20; --accent-soft: #1E3A3B;
+    --green: #4CB97A; --amber: #E2A93A; --red: #E46A55; --none: #71808A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111A22; --surface: #18242E; --ink: #E6ECEA; --muted: #9AAAB0; --line: #2B3A45;
+  --accent: #4FB3AA; --accent-ink: #0E1A20; --accent-soft: #1E3A3B;
+  --green: #4CB97A; --amber: #E2A93A; --red: #E46A55; --none: #71808A;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 17px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+h1:focus { outline: none; }
+
+.app { max-width: 560px; margin: 0 auto; padding: 0 20px 120px; }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); display: flex; align-items: center; justify-content: space-between; padding: 14px 0 10px; }
+.wordmark { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; margin: 0; }
+.wordmark span { color: var(--accent); }
+.mode-note { font-size: 13px; color: var(--muted); }
+
+h1, h2, h3 { font-family: var(--display); letter-spacing: -0.015em; line-height: 1.15; margin: 0 0 8px; }
+h1 { font-size: 32px; font-weight: 700; }
+h2 { font-size: 24px; font-weight: 700; }
+h3 { font-size: 19px; font-weight: 500; }
+p { margin: 0 0 12px; max-width: 34em; }
+ol { margin: 0; padding-left: 22px; }
+ol li + li { margin-top: 6px; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.center { text-align: center; margin-left: auto; margin-right: auto; }
+.stack > * + * { margin-top: 16px; }
+.block-gap { margin-top: 28px; }
+.hidden { display: none !important; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 22px; border-radius: 999px; border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink); font-weight: 700; cursor: pointer; }
+.btn.quiet { background: transparent; color: var(--accent); }
+.btn.danger { background: transparent; border-color: var(--red); color: var(--red); }
+.btn.wide { width: 100%; }
+.btn.compact { padding: 0 16px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.linkbtn { background: none; border: 0; padding: 6px 0; color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-align: left; }
+.row { display: flex; gap: 10px; align-items: center; }
+.row.spread { justify-content: space-between; }
+.row.middle { justify-content: center; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+.listitem { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+.listitem + .listitem { margin-top: 8px; }
+.listitem .grow { flex: 1; min-width: 0; }
+.listitem .title, .listitem .sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.listitem .title { font-weight: 700; }
+.listitem .sub { font-size: 14px; color: var(--muted); }
+.listitem .num { font-family: var(--display); font-weight: 700; font-size: 20px; }
+
+.dot { width: 14px; height: 14px; border-radius: 50%; flex: none; background: var(--none); display: inline-block; }
+.dot.green { background: var(--green); } .dot.yellow { background: var(--amber); } .dot.red { background: var(--red); }
+button.dot { border: 0; padding: 0; width: 24px; height: 24px; cursor: pointer; }
+
+label.field { display: block; font-weight: 700; margin-bottom: 6px; }
+input[type="text"], input[type="number"], input[type="search"], select { width: 100%; min-height: 50px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); }
+input:focus, select:focus { border-color: var(--accent); outline: none; }
+
+/* Questions */
+.q { padding: 18px 0; border-top: 1px solid var(--line); }
+.q:first-child { border-top: 0; }
+.q .prompt { font-weight: 700; margin-bottom: 4px; }
+.q .hint { font-size: 14px; color: var(--muted); margin-bottom: 10px; }
+.q .extra { margin-top: 10px; }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg button { min-height: 46px; min-width: 46px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 700; }
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.seg.scale { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 6px; }
+.seg.scale button { min-width: 0; padding: 0; }
+.ends { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+input[type="range"] { width: 100%; height: 44px; accent-color: var(--accent); background: transparent; margin: 0; }
+.slider.unset input[type="range"] { opacity: 0.4; }
+.slider .val { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--accent); min-width: 2.5em; text-align: right; }
+.slider .ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 0 6px; margin-top: -6px; }
+.slider .ticks span { width: 0; display: flex; justify-content: center; }
+.slider .state { font-size: 14px; color: var(--muted); min-height: 1.5em; }
+
+details.more { border: 1px dashed var(--line); border-radius: 14px; padding: 4px 16px; }
+details.more summary { cursor: pointer; font-weight: 700; padding: 12px 0; color: var(--accent); }
+details.more .inside { padding-bottom: 14px; }
+
+/* The atmosphere ring: the one expressive element */
+.ring-wrap { display: grid; place-items: center; margin: 18px 0 8px; }
+.ring { width: min(260px, 72vw); height: auto; display: block; }
+.ring .halo { fill: none; stroke: var(--accent-soft); stroke-width: 2; }
+.ring .track { fill: none; stroke: var(--line); stroke-width: 6; }
+.ring .progress { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.2s linear; }
+.ring .core { fill: var(--accent-soft); transform-origin: 50% 50%; transition: transform 0.15s ease-out; }
+.ring text { font-family: var(--display); fill: var(--ink); }
+.ring.green .progress { stroke: var(--green); } .ring.yellow .progress { stroke: var(--amber); } .ring.red .progress { stroke: var(--red); }
+.ring.green .core { fill: color-mix(in srgb, var(--green) 18%, transparent); }
+.ring.yellow .core { fill: color-mix(in srgb, var(--amber) 20%, transparent); }
+.ring.red .core { fill: color-mix(in srgb, var(--red) 18%, transparent); }
+.ring-button { background: none; border: 0; padding: 0; cursor: pointer; display: block; border-radius: 50%; }
+
+.preview { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: var(--line); border: 2px solid var(--line); flex: none; }
+.readout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.readout .cell { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.readout .k, .readout .note { font-size: 14px; color: var(--muted); }
+.readout .v { font-family: var(--display); font-size: 22px; font-weight: 700; }
+
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-weight: 700; border: 2px solid var(--accent); color: var(--accent); }
+.notice { border-left: 4px solid var(--amber); background: var(--surface); padding: 12px 14px; border-radius: 0 12px 12px 0; max-width: none; }
+.notice.hazard { border-left-color: var(--red); }
+.notice.info { border-left-color: var(--accent); }
+
+table.breakdown { width: 100%; border-collapse: collapse; font-size: 15px; }
+table.breakdown td { padding: 9px 0; border-top: 1px solid var(--line); vertical-align: top; }
+table.breakdown td:last-child { text-align: right; font-weight: 700; white-space: nowrap; padding-left: 10px; }
+
+/* Timeline */
+.tabs { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 999px; background: transparent; font-weight: 700; cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.week-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.week-row .day { width: 92px; flex: none; }
+.week-row .dots { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal .hd { font-size: 13px; color: var(--muted); text-align: center; padding-bottom: 4px; }
+.cal .cell { aspect-ratio: 1; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); padding: 4px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; font-size: 13px; cursor: pointer; }
+.cal .cell.blank { visibility: hidden; }
+.cal .cell.today { border-color: var(--accent); border-width: 2px; }
+.cal .cell .dots { display: flex; gap: 3px; flex-wrap: wrap; }
+.cal .cell .dot { width: 8px; height: 8px; }
+
+/* Bottom navigation */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tabbar .inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.tabbar button { min-height: 58px; border: 0; background: none; font-size: 12.5px; white-space: nowrap; font-weight: 700; color: var(--muted); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.tabbar button svg { width: 22px; height: 22px; }
+.tabbar button[aria-current="page"] { color: var(--accent); }
+
+.toast { position: fixed; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; z-index: 20; width: max-content; max-width: calc(100% - 40px); }
+.wrow { padding: 14px 0; border-top: 1px solid var(--line); }
+.wrow:first-child { border-top: 0; padding-top: 0; }
+.wrow .name { font-weight: 700; margin-bottom: 8px; }
+.code { font-family: var(--display); font-size: 26px; font-weight: 700; letter-spacing: 0.06em; overflow-wrap: anywhere; }
+.attrib { font-size: 12px; color: var(--muted); text-align: center; margin: 28px auto 0; }
+.attrib a { color: inherit; }
+
+@media (prefers-reduced-motion: reduce) { .ring .progress, .ring .core { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <p class="wordmark">app<span>mospherics</span></p>
+    <span class="mode-note" id="modeNote"></span>
+  </header>
+  <main id="view"></main>
+  <p class="attrib">Place data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
+</div>
+
+<nav class="tabbar hidden" id="tabbar" aria-label="Main">
+  <div class="inner">
+    <button type="button" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>Scan</button>
+    <button type="button" data-tab="timeline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Timeline</button>
+    <button type="button" data-tab="weights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>What matters</button>
+    <button type="button" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Settings</button>
+  </div>
+</nav>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   SETTINGS — every rule, tier, and threshold lives here.
+   Change a number here and the whole app follows.
+   ===================================================================== */
+// === CONFIG START
+const CONFIG = {
+  APP_VERSION: '2.0.0-alpha.2',
+
+  // Paste your Google Apps Script web app URL here (see the setup guide).
+  // Leave empty to run in demo mode: scans are saved on this phone only.
+  API_URL: '◦	https://script.google.com/macros/s/AKfycbya4ntzgr_ZQ470Q0zLEvtdkYJFpX0wq6tkWpJqv79fk_dX2w3x0SigJkh91Y8ddd8rAA/exec',
+
+  // Your email, sent with OpenStreetMap searches as their usage policy asks.
+  CONTACT_EMAIL: 'appmospherics@gmail.com',
+
+  // Sound: WHO Guidelines for Community Noise (1999) annoyance values; NIOSH 85 dBA hazard.
+  SOUND: {
+    CAL_OFFSET_DB: 110,      // Calibrate: meter dBA minus raw dBFS (see the setup guide)
+    SAMPLE_SECONDS: 5,
+    WARMUP_MS: 400,          // ignore the microphone's first moments
+    GOOD_MAX: 50,            // Good: 50 dBA and below
+    CAUTION_MAX: 55,         // Caution: 51–55 dBA
+    HAZARD_MIN: 85           // Auto-fail: 85 dBA and above. Poor: 56–84 dBA
+  },
+
+  // Light: camera estimate shown as tiers. Boundaries: Dark below 10 lux,
+  // Dim below 50 (from 1.0), Moderate below 300 (EN 12464-1), Bright below 1,000, then Daylight.
+  LIGHT: {
+    SAMPLE_SECONDS: 3,
+    SETTLE_MS: 800,          // let the camera's auto-exposure settle first
+    ASSUMED_APERTURE: 1.8,   // used only when the phone reports its exposure settings
+    EXPOSURE_CAL_FACTOR: 1.0,
+    // Calibrate: pairs of [camera brightness 0–1, meter lux], darkest to brightest.
+    // Used when the phone doesn't report exposure (typical on iPhone).
+    LUMA_TO_LUX: [[0.004, 2], [0.02, 12], [0.06, 45], [0.15, 200], [0.3, 600], [0.5, 2000], [0.75, 12000]],
+    TIERS: [
+      { name: 'Dark', below: 10 },
+      { name: 'Dim', below: 50 },
+      { name: 'Moderate', below: 300 },
+      { name: 'Bright', below: 1000 },
+      { name: 'Daylight', below: Infinity }
+    ],
+    POINTS: { Dark: null, Dim: 0, Moderate: 50, Bright: 100, Daylight: 100 } // Dark: recorded, not scored
+  },
+
+  // CO2: Aranet4 consumer tiers, plus an appmospherics Fail tier (hazard).
+  CO2: { GOOD_BELOW: 1000, AVERAGE_MAX: 1400, UNHEALTHY_MAX: 2000 },
+
+  // Stoplight cutoffs: PROVISIONAL thirds until there's enough data.
+  STOPLIGHT: { GREEN_MIN: 67, YELLOW_MIN: 34 },
+  HAZARD_SCORE_CAP: 33,              // hazards force red and cap the score here
+
+  // Low confidence when fewer than this many of the 9 scored measures are answered.
+  LOW_CONFIDENCE_MIN_ANSWERED: 5,
+
+  NEARBY_RADIUS_M: 100,
+  DEFAULT_WEIGHT: 2                  // 0 = off, 3 = matters a lot
+};
+// === CONFIG END
+
+/* =====================================================================
+   SCORING — pure functions, tested separately from the screens
+   ===================================================================== */
+// === SCORING START
+const METRICS = [
+  { key: 'sound', label: 'Sound' },
+  { key: 'light', label: 'Light' },
+  { key: 'thermal', label: 'Thermal comfort' },
+  { key: 'social', label: 'Social load (crowding)' },
+  { key: 'smell', label: 'Smell' },
+  { key: 'seat', label: 'Seat comfort' },
+  { key: 'nature', label: 'Window and nature view' },
+  { key: 'co2', label: 'Air quality (CO₂)' },
+  { key: 'stress', label: 'Stress (Garmin)' }
+];
+const isNum = v => typeof v === 'number' && isFinite(v);
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+function soundTier(db) {
+  if (!isNum(db)) return null;
+  const S = CONFIG.SOUND;
+  if (db >= S.HAZARD_MIN) return 'Fail';
+  if (db <= S.GOOD_MAX) return 'Good';
+  if (db <= S.CAUTION_MAX) return 'Caution';
+  return 'Poor';
+}
+// Good = 100. Caution slides 66 to 34 (yellow). Poor slides 33 to 0 (red).
+function soundPoints(db) {
+  if (!isNum(db)) return null;
+  const S = CONFIG.SOUND;
+  if (db <= S.GOOD_MAX) return 100;
+  if (db <= S.CAUTION_MAX) return 66 - (db - S.GOOD_MAX) / (S.CAUTION_MAX - S.GOOD_MAX) * 32;
+  if (db < S.HAZARD_MIN) return 33 - (db - S.CAUTION_MAX) / (S.HAZARD_MIN - S.CAUTION_MAX) * 33;
+  return 0;
+}
+function lightTier(lux) {
+  if (!isNum(lux) || lux < 0) return null;
+  for (const t of CONFIG.LIGHT.TIERS) if (lux < t.below) return t.name;
+  return CONFIG.LIGHT.TIERS[CONFIG.LIGHT.TIERS.length - 1].name;
+}
+function co2Tier(ppm) {
+  if (!isNum(ppm)) return null;
+  const C = CONFIG.CO2;
+  if (ppm < C.GOOD_BELOW) return 'Good';
+  if (ppm <= C.AVERAGE_MAX) return 'Average';
+  if (ppm <= C.UNHEALTHY_MAX) return 'Unhealthy';
+  return 'Fail';
+}
+
+// Per measure: answered (counts toward confidence) and points (0–100, or null when not scored).
+function metricResults(s) {
+  const pts = (answered, p) => ({ answered, points: isNum(p) ? Math.round(clamp(p, 0, 100)) : null });
+  const r = {};
+  r.sound = pts(isNum(s.sound_dba), soundPoints(s.sound_dba));
+  const lp = s.light_tier ? CONFIG.LIGHT.POINTS[s.light_tier] : null;
+  r.light = pts(!!s.light_tier, lp);
+  r.thermal = pts(isNum(s.thermal), s.thermal);
+  r.social = pts(isNum(s.social), isNum(s.social) ? (s.social - 1) / 6 * 100 : null);
+  r.smell = s.smell_none ? pts(true, null) : pts(isNum(s.smell), s.smell);
+  r.seat = s.seat === 'na' ? pts(true, null) : pts(isNum(s.seat), isNum(s.seat) ? s.seat * 10 : null);
+  if (s.window === 'no') r.nature = pts(true, 0);
+  else if (s.window === 'yes' || s.window === 'outdoors') r.nature = pts(true, s.nature === 'yes' ? 100 : 50);
+  else r.nature = pts(false, null);
+  const ct = co2Tier(s.co2);
+  r.co2 = pts(ct != null, ct == null ? null : ({ Good: 100, Average: 50, Unhealthy: 0, Fail: 0 })[ct]);
+  r.stress = pts(isNum(s.stress), isNum(s.stress) ? 100 - s.stress : null);
+  return r;
+}
+function weightedMean(results, weights) {
+  let sum = 0, wsum = 0;
+  for (const m of METRICS) {
+    const p = results[m.key].points;
+    let w = 1;
+    if (weights) w = isNum(weights[m.key]) ? weights[m.key] : CONFIG.DEFAULT_WEIGHT;
+    if (p == null || w <= 0) continue;
+    sum += p * w; wsum += w;
+  }
+  return wsum > 0 ? sum / wsum : null;
+}
+function hazardsFor(s) {
+  const h = [];
+  if (isNum(s.sound_dba) && s.sound_dba >= CONFIG.SOUND.HAZARD_MIN)
+    h.push(`Sound at ${Math.round(s.sound_dba)} dBA is at or above the ${CONFIG.SOUND.HAZARD_MIN} dBA hearing-safety limit.`);
+  if (isNum(s.co2) && s.co2 > CONFIG.CO2.UNHEALTHY_MAX)
+    h.push(`CO₂ at ${Math.round(s.co2)} ppm is above ${CONFIG.CO2.UNHEALTHY_MAX.toLocaleString('en-US')} ppm.`);
+  return h;
+}
+function stoplightFor(score, hazard) {
+  if (hazard) return 'red';
+  if (!isNum(score)) return 'none';
+  if (score >= CONFIG.STOPLIGHT.GREEN_MIN) return 'green';
+  if (score >= CONFIG.STOPLIGHT.YELLOW_MIN) return 'yellow';
+  return 'red';
+}
+// placeScore: equal weights, the same for everyone. yourScore: this person's weights.
+function scoreScan(s, weights) {
+  const results = metricResults(s);
+  const answered = METRICS.filter(m => results[m.key].answered).length;
+  const hazards = hazardsFor(s);
+  const hz = hazards.length > 0;
+  const finish = v => (v == null ? null : Math.round(hz ? Math.min(v, CONFIG.HAZARD_SCORE_CAP) : v));
+  const placeScore = finish(weightedMean(results, null));
+  const yourScore = finish(weightedMean(results, weights));
+  return {
+    results, answered, hazards,
+    lowConfidence: answered < CONFIG.LOW_CONFIDENCE_MIN_ANSWERED,
+    placeScore, placeLight: stoplightFor(placeScore, hz),
+    yourScore, yourLight: stoplightFor(yourScore, hz)
+  };
+}
+// Camera brightness (0–1) to lux, interpolating the calibration table on a log scale.
+function lumaToLux(luma) {
+  const T = CONFIG.LIGHT.LUMA_TO_LUX;
+  if (!isNum(luma) || luma < 0) return null;
+  if (luma <= T[0][0]) return T[0][1] * (luma / T[0][0]);
+  for (let i = 1; i < T.length; i++) {
+    if (luma <= T[i][0]) {
+      const f = (luma - T[i - 1][0]) / (T[i][0] - T[i - 1][0]);
+      return Math.exp(Math.log(T[i - 1][1]) + f * (Math.log(T[i][1]) - Math.log(T[i - 1][1])));
+    }
+  }
+  return T[T.length - 1][1];
+}
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const CODE_PATTERN = /^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
+function normalizeCode(raw) {
+  const c = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const code = c.length === 12 ? `${c.slice(0, 4)}-${c.slice(4, 8)}-${c.slice(8)}` : null;
+  return code && CODE_PATTERN.test(code) ? code : null;
+}
+function localISO(d) {
+  const pad = n => String(Math.floor(Math.abs(n))).padStart(2, '0');
+  const off = -d.getTimezoneOffset();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${off >= 0 ? '+' : '-'}${pad(off / 60)}:${pad(off % 60)}`;
+}
+// === SCORING END
+
+/* =====================================================================
+   STORAGE (this phone) — never throws, so private browsing can't break the app
+   ===================================================================== */
+const store = {
+  get(k, fallback) { try { const v = localStorage.getItem('am2.' + k); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; } },
+  set(k, v) { try { localStorage.setItem('am2.' + k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+  remove(k) { try { localStorage.removeItem('am2.' + k); } catch (e) {} }
+};
+function newCode() {
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  let s = '';
+  for (let i = 0; i < 12; i++) { s += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length]; if (i === 3 || i === 7) s += '-'; }
+  return s;
+}
+function newId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  const b = new Uint8Array(16); crypto.getRandomValues(b);
+  return Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+}
+function defaultWeights() { const w = {}; METRICS.forEach(m => (w[m.key] = CONFIG.DEFAULT_WEIGHT)); return w; }
+function cleanWeights(raw) {
+  const w = defaultWeights();
+  if (raw && typeof raw === 'object') METRICS.forEach(m => { const v = raw[m.key]; if (isNum(v)) w[m.key] = clamp(Math.round(v), 0, 3); });
+  return w;
+}
+const validScan = s => s && typeof s === 'object' && typeof s.scan_id === 'string' && typeof s.timestamp_local === 'string' && !isNaN(new Date(s.timestamp_local));
+
+const state = {
+  userId: normalizeCode(store.get('userId', null)),
+  consented: store.get('consented', false) === true,
+  installSeen: store.get('installSeen', false) === true,
+  cityAsked: store.get('citySkipped', false) === true,
+  city: String(store.get('city', '') || ''),
+  weights: cleanWeights(store.get('weights', null)),
+  scans: (Array.isArray(store.get('scans', [])) ? store.get('scans', []) : []).filter(validScan), // full history with dates: this phone only
+  draft: null
+};
+function saveScans() { if (!store.set('scans', state.scans)) toast('This phone’s storage is full or blocked, so this scan may not stay in your timeline.'); }
+function ensureUser() { if (!state.userId) { state.userId = newCode(); store.set('userId', state.userId); } return state.userId; }
+function saveDraft() { if (state.draft) store.set('draft', { at: Date.now(), draft: state.draft }); else store.remove('draft'); }
+function savedDraft() { const d = store.get('draft', null); return d && d.draft && Date.now() - d.at < 30 * 60 * 1000 ? d.draft : null; }
+
+/* =====================================================================
+   DATA LAYER — the only code that talks to the backend.
+   To switch backends later, rewrite just this object.
+   ===================================================================== */
+async function fetchWithTimeout(url, options, ms) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try { return await fetch(url, Object.assign({}, options, { signal: ctl.signal })); }
+  finally { clearTimeout(timer); }
+}
+const api = {
+  enabled() { return !!CONFIG.API_URL; },
+  async call(action, payload) {
+    if (!this.enabled()) throw new Error('Demo mode: no backend is connected.');
+    const res = await fetchWithTimeout(CONFIG.API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // a "simple" request: no CORS preflight, which Apps Script can't answer
+      body: JSON.stringify(Object.assign({ action }, payload))
+    }, 25000);
+    if (!res.ok) throw new Error(`The server responded with ${res.status}.`);
+    const data = await res.json();
+    if (!data || !data.ok) throw new Error((data && data.error) || 'The request didn’t go through.');
+    return data;
+  },
+  submitScan(scan) { return this.call('submitScan', { scan }); },
+  getMyScans(userId) { return this.call('getMyScans', { user_id: userId }); },
+  getPlace(placeId) { return this.call('getPlace', { place_id: placeId }); },
+  saveWeights(userId, weights) { return this.call('saveWeights', { user_id: userId, weights }); },
+  deleteMyData(userId) { return this.call('deleteMyData', { user_id: userId }); }
+};
+function serverCopy(s) { const c = JSON.parse(JSON.stringify(s)); delete c.synced; return c; }
+let syncing = false;
+async function syncPending() {
+  if (!api.enabled() || syncing) return;
+  syncing = true;
+  try {
+    for (const s of state.scans.filter(x => !x.synced)) {
+      try {
+        const res = await api.submitScan(serverCopy(s));
+        s.synced = true;
+        if (res.place_id && s.place) s.place.place_id = res.place_id;
+        saveScans();
+      } catch (e) { break; } // offline or server down: try again later
+    }
+  } finally { syncing = false; }
+}
+
+/* =====================================================================
+   SENSORS — microphone for sound level, back camera for light level.
+   Only the resulting numbers are kept. No audio or images are saved or sent.
+   ===================================================================== */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const CALIBRATE = /[?&#]calibrate\b/.test(location.search + location.hash);
+const SRGB_TO_LINEAR = Array.from({ length: 256 }, (_, i) => { const c = i / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+const median = a => { const b = a.slice().sort((x, y) => x - y); const m = b.length >> 1; return b.length ? (b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2) : null; };
+
+async function openStreams() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
+    throw new Error('The microphone and camera need a secure (https) page. Readings will work once the app is online.');
+  const audio = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+  const video = { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 480 } };
+  try { return { stream: await navigator.mediaDevices.getUserMedia({ audio, video }), errors: {} }; }
+  catch (first) {
+    // One of the two was refused or missing: ask for each separately and use what we get.
+    const out = { stream: new MediaStream(), errors: {} };
+    try { (await navigator.mediaDevices.getUserMedia({ audio })).getTracks().forEach(t => out.stream.addTrack(t)); } catch (e) { out.errors.sound = e; }
+    try { (await navigator.mediaDevices.getUserMedia({ video })).getTracks().forEach(t => out.stream.addTrack(t)); } catch (e) { out.errors.light = e; }
+    return out;
+  }
+}
+// Approximate A-weighting built from its standard corner frequencies (first-order sections).
+function aWeighting(ctx) {
+  if (!ctx.createIIRFilter) return null;
+  const fs = ctx.sampleRate;
+  const hp = fc => { const K = Math.tan(Math.PI * fc / fs), n = 1 / (1 + K); return ctx.createIIRFilter([n, -n], [1, (K - 1) / (K + 1)]); };
+  const lp = fc => { const K = Math.tan(Math.PI * fc / fs), n = K / (1 + K); return ctx.createIIRFilter([n, n], [1, (K - 1) / (K + 1)]); };
+  const nodes = [hp(20.6), hp(20.6), hp(107.7), hp(737.9), lp(12194), lp(12194)];
+  const gain = ctx.createGain(); gain.gain.value = Math.pow(10, 2.0 / 20); // 0 dB at 1 kHz
+  nodes.push(gain);
+  for (let i = 0; i < nodes.length - 1; i++) nodes[i].connect(nodes[i + 1]);
+  return { input: nodes[0], output: gain };
+}
+
+let activeReading = null;
+function stopReading() { if (activeReading) { activeReading.cancel(); activeReading = null; } }
+
+// Call from a tap handler so the phone allows audio to start.
+function startReading(preview, onTick) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ctx = null;
+  try { if (AC) { ctx = new AC(); if (ctx.state === 'suspended') ctx.resume().catch(() => {}); } } catch (e) { ctx = null; }
+  let cancelled = false, stream = null;
+  const cleanup = () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    if (ctx && ctx.state !== 'closed') ctx.close().catch(() => {});
+    if (preview) { try { preview.pause(); } catch (e) {} preview.srcObject = null; }
+  };
+  const run = async () => {
+    const out = { dba: null, dbfs: null, clipped: false, lux: null, luma: null, method: null, soundError: null, lightError: null };
+    try {
+      let opened;
+      try { opened = await openStreams(); } catch (e) { out.soundError = e; out.lightError = e; return out; }
+      stream = opened.stream;
+      if (cancelled) return out;
+      out.soundError = opened.errors.sound || null;
+      out.lightError = opened.errors.light || null;
+      const audioTrack = stream.getAudioTracks()[0], videoTrack = stream.getVideoTracks()[0];
+      if (!audioTrack && !out.soundError) out.soundError = new Error('No microphone was found.');
+      if (!videoTrack && !out.lightError) out.lightError = new Error('No camera was found.');
+      const total = CONFIG.SOUND.SAMPLE_SECONDS * 1000;
+      const t0 = performance.now();
+      const jobs = [];
+
+      if (audioTrack && ctx) jobs.push((async () => {
+        if (ctx.state === 'suspended') await ctx.resume();
+        const src = ctx.createMediaStreamSource(new MediaStream([audioTrack]));
+        const analyser = ctx.createAnalyser(); analyser.fftSize = 2048;
+        const chain = aWeighting(ctx);
+        if (chain) { src.connect(chain.input); chain.output.connect(analyser); } else src.connect(analyser);
+        const raw = ctx.createAnalyser(); raw.fftSize = 2048; src.connect(raw); // unweighted, to spot clipping
+        const buf = new Float32Array(analyser.fftSize), rawBuf = new Float32Array(raw.fftSize);
+        let energy = 0, frames = 0, clippedFrames = 0;
+        while (!cancelled && performance.now() - t0 < total) {
+          analyser.getFloatTimeDomainData(buf);
+          let ms = 0; for (let i = 0; i < buf.length; i++) ms += buf[i] * buf[i];
+          ms /= buf.length;
+          if (performance.now() - t0 >= CONFIG.SOUND.WARMUP_MS) {
+            energy += ms; frames++;
+            raw.getFloatTimeDomainData(rawBuf);
+            let peak = 0; for (let i = 0; i < rawBuf.length; i++) { const a = Math.abs(rawBuf[i]); if (a > peak) peak = a; }
+            if (peak >= 0.98) clippedFrames++;
+          }
+          onTick({ progress: (performance.now() - t0) / total, liveDb: ms > 0 ? 10 * Math.log10(ms) + CONFIG.SOUND.CAL_OFFSET_DB : null });
+          await sleep(45);
+        }
+        if (frames && energy > 0) {
+          const dbfs = 10 * Math.log10(energy / frames);
+          if (dbfs > -110) { // anything lower means the microphone delivered silence
+            out.dbfs = dbfs;
+            out.dba = clamp(dbfs + CONFIG.SOUND.CAL_OFFSET_DB, 20, 130);
+            out.clipped = clippedFrames / frames > 0.02;
+          } else out.soundError = new Error('The microphone returned silence.');
+        }
+      })().catch(e => { out.soundError = e; }));
+      else if (audioTrack && !ctx) out.soundError = new Error('This browser can’t measure sound.');
+
+      if (videoTrack && preview) jobs.push((async () => {
+        preview.srcObject = new MediaStream([videoTrack]);
+        await preview.play();
+        await sleep(CONFIG.LIGHT.SETTLE_MS);
+        const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 48;
+        const g = canvas.getContext('2d', { willReadFrequently: true });
+        const lumas = [];
+        const end = performance.now() + CONFIG.LIGHT.SAMPLE_SECONDS * 1000;
+        while (!cancelled && performance.now() < end) {
+          if (preview.readyState >= 2) {
+            g.drawImage(preview, 0, 0, 64, 48);
+            const d = g.getImageData(0, 0, 64, 48).data;
+            let y = 0;
+            for (let i = 0; i < d.length; i += 4) y += 0.2126 * SRGB_TO_LINEAR[d[i]] + 0.7152 * SRGB_TO_LINEAR[d[i + 1]] + 0.0722 * SRGB_TO_LINEAR[d[i + 2]];
+            lumas.push(y / (d.length / 4));
+          }
+          if (!audioTrack) onTick({ progress: (performance.now() - t0) / total });
+          await sleep(150);
+        }
+        if (!lumas.length) throw new Error('The camera didn’t deliver a picture.');
+        out.luma = median(lumas);
+        const st = videoTrack.getSettings ? videoTrack.getSettings() : {};
+        if (isNum(st.exposureTime) && st.exposureTime > 0 && isNum(st.iso) && st.iso > 0) {
+          const seconds = st.exposureTime * 1e-4; // the standard reports exposure in units of 100 microseconds
+          const ev100 = Math.log2(CONFIG.LIGHT.ASSUMED_APERTURE ** 2 / seconds) - Math.log2(st.iso / 100);
+          out.lux = 2.5 * Math.pow(2, ev100) * (out.luma / 0.18) * CONFIG.LIGHT.EXPOSURE_CAL_FACTOR;
+          out.method = 'exposure';
+        } else { out.lux = lumaToLux(out.luma); out.method = 'brightness'; }
+      })().catch(e => { out.lightError = e; }));
+
+      await Promise.all(jobs);
+      if (!cancelled) onTick({ progress: 1 });
+      return out;
+    } finally { cleanup(); }
+  };
+  const handle = { cancel() { cancelled = true; cleanup(); }, get cancelled() { return cancelled; } };
+  handle.promise = run();
+  return handle;
+}
+function sensorMessage(err, what) {
+  const name = err && err.name;
+  if (name === 'NotAllowedError' || name === 'SecurityError') return `${what} permission is off`;
+  if (name === 'NotFoundError' || name === 'OverconstrainedError') return `No ${what.toLowerCase()} found`;
+  if (name === 'NotReadableError') return `${what} is in use by another app`;
+  return `${what} unavailable`;
+}
+
+/* =====================================================================
+   PLACES — OpenStreetMap: Nominatim for search by name, Overpass for nearby
+   ===================================================================== */
+let lastOsmCall = 0;
+async function osmThrottle() { const wait = lastOsmCall + 1100 - Date.now(); lastOsmCall = Math.max(Date.now(), lastOsmCall + 1100); if (wait > 0) await sleep(wait); }
+const OSM_TYPES = {
+  cafe: 'Café', restaurant: 'Restaurant', fast_food: 'Restaurant', food_court: 'Restaurant', bar: 'Bar', pub: 'Bar', biergarten: 'Bar',
+  library: 'Library', park: 'Park', garden: 'Park', nature_reserve: 'Park', playground: 'Park',
+  fitness_centre: 'Gym', sports_centre: 'Gym', swimming_pool: 'Gym',
+  school: 'School', university: 'School', college: 'School', kindergarten: 'School',
+  hospital: 'Healthcare', clinic: 'Healthcare', doctors: 'Healthcare', dentist: 'Healthcare',
+  supermarket: 'Shop', mall: 'Shop', department_store: 'Shop', pharmacy: 'Shop',
+  cinema: 'Entertainment', theatre: 'Entertainment', nightclub: 'Entertainment', museum: 'Museum', gallery: 'Museum',
+  hotel: 'Hotel', place_of_worship: 'Place of worship', coworking_space: 'Office or workplace',
+  community_centre: 'Community space', arts_centre: 'Community space', bus_station: 'Transit', station: 'Transit'
+};
+const MANUAL_TYPES = ['Café', 'Restaurant', 'Bar', 'Library', 'Office or workplace', 'Shop', 'Gym', 'Park or outdoors', 'School', 'Healthcare', 'Transit', 'Entertainment', 'Other'];
+const PRIVATE_TYPES = ['Home', 'Someone else’s home', 'Other private place'];
+const OSM_KEYS = ['amenity', 'shop', 'leisure', 'tourism', 'office'];
+const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
+function osmTypeLabel(category, type) {
+  if (OSM_TYPES[type]) return OSM_TYPES[type];
+  if (category === 'shop') return 'Shop';
+  if (category === 'office') return 'Office or workplace';
+  if (category === 'leisure') return 'Leisure';
+  if (category === 'tourism') return 'Visitor spot';
+  return type && type !== 'yes' ? cap(String(type).replace(/_/g, ' ')) : 'Place';
+}
+function uniquePlaces(list) {
+  const seen = new Set();
+  return list.filter(p => { const k = p.osm_type + '/' + p.osm_id; if (!p.name || seen.has(k)) return false; seen.add(k); return true; });
+}
+async function searchPlaces(term, city) {
+  await osmThrottle();
+  const params = new URLSearchParams({ format: 'jsonv2', q: city ? `${term}, ${city}` : term, limit: '8' });
+  if (CONFIG.CONTACT_EMAIL) params.set('email', CONFIG.CONTACT_EMAIL);
+  let res;
+  try { res = await fetchWithTimeout('https://nominatim.openstreetmap.org/search?' + params.toString(), { headers: { 'Accept-Language': 'en' } }, 12000); } catch (e) { res = null; }
+  if (!res || !res.ok) throw new Error('Place search isn’t responding. Type the place in below instead.');
+  const data = await res.json();
+  return uniquePlaces((Array.isArray(data) ? data : []).map(r => {
+    const parts = String(r.display_name || '').split(',').map(x => x.trim());
+    return { osm_type: String(r.osm_type || ''), osm_id: String(r.osm_id || ''), name: r.name || parts[0], address: parts.slice(1, 3).join(', '),
+      type: osmTypeLabel(r.category, r.type), lat: Number(r.lat), lon: Number(r.lon), city: city || '', source: 'osm' };
+  }));
+}
+function getPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('Location isn’t available on this device. Search by name instead.'));
+    navigator.geolocation.getCurrentPosition(p => resolve(p.coords), reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 });
+  });
+}
+function distanceM(lat1, lon1, lat2, lon2) {
+  const R = 6371000, rad = x => x * Math.PI / 180;
+  const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lon2 - lon1) / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+// The phone's position is used only inside this function and is never stored or sent to the backend.
+async function nearbyPlaces() {
+  const coords = await getPosition();
+  const lat = coords.latitude, lon = coords.longitude, R = CONFIG.NEARBY_RADIUS_M;
+  const query = `[out:json][timeout:15];(${OSM_KEYS.map(k => `nwr(around:${R},${lat},${lon})["name"]["${k}"];`).join('')});out center 40;`;
+  await osmThrottle();
+  let res;
+  try { res = await fetchWithTimeout('https://overpass-api.de/api/interpreter', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(query) }, 20000); } catch (e) { res = null; }
+  if (!res || !res.ok) throw new Error('Nearby places aren’t loading. Search by name instead.');
+  const data = await res.json();
+  const list = (data.elements || []).map(e => {
+    const t = e.tags || {};
+    const key = OSM_KEYS.find(k => t[k]);
+    const plat = e.lat != null ? e.lat : e.center && e.center.lat, plon = e.lon != null ? e.lon : e.center && e.center.lon;
+    return { osm_type: String(e.type), osm_id: String(e.id), name: t.name, address: [t['addr:housenumber'], t['addr:street']].filter(Boolean).join(' '),
+      type: osmTypeLabel(key, t[key]), lat: plat, lon: plon, city: state.city, source: 'osm', far: isNum(plat) && isNum(plon) ? distanceM(lat, lon, plat, plon) : Infinity };
+  });
+  return uniquePlaces(list).sort((a, b) => a.far - b.far).slice(0, 12).map(p => { delete p.far; return p; });
+}
+
+/* =====================================================================
+   SCREEN HELPERS
+   ===================================================================== */
+const $view = document.getElementById('view');
+const $tabbar = document.getElementById('tabbar');
+// Builds an element. Empty children (null, undefined, false) are skipped, so nothing ever prints "null".
+function h(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') n.className = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? '' : String(v));
+  }
+  put(n, kids);
+  return n;
+}
+function put(node, kids) {
+  for (const kid of [].concat(kids).flat(Infinity)) {
+    if (kid == null || kid === false || kid === '') continue;
+    node.appendChild(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  }
+  return node;
+}
+function fill(node, ...kids) { node.replaceChildren(); return put(node, kids); }
+// Shows a screen: sets the bottom tab, scrolls up, and moves focus to the heading for screen readers.
+function mount(tab, ...kids) {
+  fill($view, kids);
+  $tabbar.classList.toggle('hidden', !tab);
+  $tabbar.querySelectorAll('button').forEach(b => { if (b.dataset.tab === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  window.scrollTo(0, 0);
+  const h1 = $view.querySelector('h1');
+  if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
+}
+let toastTimer;
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = h('div', { class: 'toast', role: 'status' }, msg);
+  document.body.appendChild(t);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 4500);
+}
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const lightWord = c => ({ green: 'Green', yellow: 'Yellow', red: 'Red' })[c] || 'No score yet';
+const hourLabel = hr => `${hr % 12 === 0 ? 12 : hr % 12} ${hr < 12 ? 'am' : 'pm'}`;
+const dateKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const placeName = s => (s.place && s.place.name) || s.private_type || 'Unnamed place';
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const fmtDay = (d, opts) => d.toLocaleDateString(undefined, opts);
+const fmtTime = d => d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+
+const RING_C = 2 * Math.PI * 92;
+function ring({ big = '', sub = '', color = '', progress = 0, label = '' } = {}) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+  const svg = el('svg', { class: ('ring ' + color).trim(), viewBox: '0 0 220 220', role: 'img', 'aria-label': label || big });
+  const prog = el('circle', { class: 'progress', cx: 110, cy: 110, r: 92, 'stroke-dasharray': RING_C, 'stroke-dashoffset': RING_C });
+  const core = el('circle', { class: 'core', cx: 110, cy: 110, r: 70 });
+  const bigT = el('text', { x: 110, y: 118, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 700 });
+  const subT = el('text', { x: 110, y: 150, 'text-anchor': 'middle', 'font-size': 14 });
+  svg.append(el('circle', { class: 'halo', cx: 110, cy: 110, r: 106 }), el('circle', { class: 'track', cx: 110, cy: 110, r: 92 }), prog, core, bigT, subT);
+  const apiObj = {
+    node: svg, core,
+    setBig(t, large) { bigT.textContent = t; bigT.setAttribute('font-size', large ? 54 : 22); bigT.setAttribute('y', large ? 122 : (subT.textContent ? 112 : 118)); },
+    setSub(t) { subT.textContent = t; },
+    setProgress(p) { prog.setAttribute('stroke-dashoffset', String(RING_C * (1 - clamp(p || 0, 0, 1)))); }
+  };
+  apiObj.setSub(sub); apiObj.setBig(big, false); apiObj.setProgress(progress);
+  return apiObj;
+}
+
+/* Question building blocks. Each reports null when unanswered. */
+function sliderQ({ prompt, hint, left, right, value, onChange, optional }) {
+  const wrap = h('div', { class: 'q slider' });
+  const shown = h('span', { class: 'val', 'aria-hidden': 'true' });
+  const status = h('div', { class: 'state' });
+  const input = h('input', { type: 'range', min: 0, max: 100, step: 1, value: isNum(value) ? value : 50, 'aria-label': prompt });
+  const clear = optional ? h('button', { type: 'button', class: 'linkbtn small', onclick: () => apply(null) }, 'Clear answer') : null;
+  function apply(v) {
+    const set = isNum(v);
+    wrap.classList.toggle('unset', !set);
+    shown.textContent = set ? String(v) : '';
+    if (set) { input.value = v; input.setAttribute('aria-valuetext', `${v} of 100`); } else input.setAttribute('aria-valuetext', 'Not answered');
+    fill(status, set ? clear : 'Not answered yet. Tap or drag the slider.');
+    onChange(set ? v : null);
+  }
+  const fromInput = () => apply(Number(input.value));
+  input.addEventListener('input', fromInput);
+  input.addEventListener('change', fromInput);
+  input.addEventListener('click', fromInput); // a tap on the middle doesn't move the handle, but still counts as an answer
+  put(wrap, [
+    h('div', { class: 'row spread prompt' }, h('span', {}, prompt), shown),
+    hint && h('div', { class: 'hint' }, hint),
+    input,
+    h('div', { class: 'ticks', 'aria-hidden': 'true' }, [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(n => h('span', {}, n))),
+    h('div', { class: 'ends' }, h('span', {}, left), h('span', {}, right)),
+    status
+  ]);
+  const silent = onChange; onChange = () => {}; apply(isNum(value) ? value : null); onChange = silent; // set up without reporting a change
+  wrap.setValue = apply;
+  return wrap;
+}
+// A row of choices. Tapping the selected choice again clears it.
+function choiceQ({ prompt, hint, options, value, onChange, scale, ends, extra }) {
+  let current = value;
+  const buttons = options.map(o => h('button', { type: 'button', 'aria-pressed': String(o.value === current), onclick: () => select(o.value === current ? null : o.value) }, o.label));
+  function paint() { buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(options[i].value === current))); }
+  function select(v, quiet) { current = v; paint(); if (!quiet) onChange(v); }
+  const wrap = h('div', { class: 'q' },
+    h('div', { class: 'prompt' }, prompt),
+    hint && h('div', { class: 'hint' }, hint),
+    h('div', { class: 'seg' + (scale ? ' scale' : ''), role: 'group', 'aria-label': prompt, style: scale ? `--n:${options.length}` : null }, buttons),
+    ends && h('div', { class: 'ends' }, h('span', {}, ends[0]), h('span', {}, ends[1])),
+    extra && h('div', { class: 'extra seg' }, extra));
+  wrap.setValue = v => select(v, true);
+  return wrap;
+}
+function toggleButton(label, pressed, onChange) {
+  const b = h('button', { type: 'button', 'aria-pressed': String(!!pressed), onclick: () => { const now = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(now)); onChange(now); } }, label);
+  b.setPressed = v => b.setAttribute('aria-pressed', String(!!v));
+  return b;
+}
+
+/* =====================================================================
+   NAVIGATION — each screen is a history entry, so the phone's back gesture works
+   ===================================================================== */
+const routes = {};
+const SCAN_STEPS = ['scan-place', 'scan-comfort', 'scan-reading', 'scan-questions'];
+function go(name, params, replace) {
+  const st = { v: name, p: params || {} };
+  try { if (replace) history.replaceState(st, ''); else history.pushState(st, ''); } catch (e) {}
+  show(st);
+}
+function show(st) {
+  stopReading();
+  let name = st && st.v, params = (st && st.p) || {};
+  if (!state.consented) return onboard();
+  if (SCAN_STEPS.includes(name) && !state.draft) name = 'home';
+  if (name === 'result' && !state.scans.some(s => s.scan_id === params.id)) name = 'home';
+  (routes[name] || routes.home)(params);
+}
+window.addEventListener('popstate', e => show(e.state));
+
+/* ---------------- First run ---------------- */
+function privacyText() {
+  const sec = (title, ...paras) => h('div', {}, h('h3', {}, title), paras.map(t => h('p', {}, t)));
+  return h('div', { class: 'panel stack' },
+    sec('What we collect',
+      'The scans you choose to make: sound and light readings from your phone, your answers to the scan questions, and the date and time. No audio or images are saved, only the resulting numbers.',
+      'The place you select. For public places, we store the venue, never your exact position. Your phone’s location is used only to suggest nearby places and is never saved. For private places like home, we store only the type of place.',
+      'Optional readings you add, such as CO₂ or stress.'),
+    sec('What we don’t collect', 'Your name, email, or contact information. No login is required.'),
+    sec('Your history', 'Your personal history is linked to this device. If you clear your browser data or switch phones, your history may not carry over. Your past scans still count toward shared place data. Want a backup? You’ll find a recovery code in Settings.'),
+    sec('Who sees what', 'Your timeline is visible only to you. Your scans also contribute, without your code attached, to shared summaries of places. Shared place information shows only the day of the week and hour, never dates. This research data may be used in studies, publications, and partnerships, but only in combined form, never as individual timelines.'),
+    sec('Your choices', 'You can delete all your data anytime in Settings.'),
+    sec('Please note', 'appmospherics is not a medical tool. Readings from phone sensors are estimates. You must be 18 or older to use the app.'));
+}
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+function onboard() {
+  if (!state.consented) {
+    return mount(null, h('section', { class: 'stack' },
+      h('h1', {}, 'Before you start'),
+      h('p', {}, 'appmospherics helps you discover which environments help you feel your best. Here’s how your information is handled.'),
+      privacyText(),
+      h('button', { type: 'button', class: 'btn wide', onclick: () => { state.consented = true; store.set('consented', true); onboard(); } }, 'I agree')));
+  }
+  if (!isStandalone() && !state.installSeen) {
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const steps = ios
+      ? ['Tap the Share button in Safari.', 'Choose “Add to Home Screen.”', 'Open appmospherics from your home screen.']
+      : ['Open the browser menu.', 'Choose “Add to Home screen” or “Install app.”', 'Open appmospherics from your home screen.'];
+    return mount(null, h('section', { class: 'stack' },
+      h('h1', {}, 'Add appmospherics to your home screen'),
+      h('p', {}, 'It opens like an app and helps preserve your history on this phone. Do this before your first scan so your scans stay together.'),
+      h('div', { class: 'panel' }, h('ol', {}, steps.map(t => h('li', {}, t)))),
+      h('button', { type: 'button', class: 'btn quiet wide', onclick: () => { state.installSeen = true; store.set('installSeen', true); onboard(); } }, 'Continue in the browser')));
+  }
+  if (!state.city && !state.cityAsked) {
+    const input = h('input', { type: 'text', id: 'city', placeholder: 'For example, Denver', autocomplete: 'address-level2', maxlength: 80 });
+    const done = () => { state.city = input.value.trim(); state.cityAsked = true; store.set('city', state.city); store.set('citySkipped', true); onboard(); };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') done(); });
+    return mount(null, h('section', { class: 'stack' },
+      h('h1', {}, 'Where are you based?'),
+      h('p', {}, 'Your city helps find places when you search by name. You can change it anytime in Settings.'),
+      h('div', {}, h('label', { class: 'field', for: 'city' }, 'City'), input),
+      h('button', { type: 'button', class: 'btn wide', onclick: done }, 'Continue')));
+  }
+  go('home', {}, true);
+}
+
+/* ---------------- Home ---------------- */
+function scanListItem(s) {
+  const d = new Date(s.timestamp_local), sc = scoreScan(s, state.weights);
+  return h('button', { type: 'button', class: 'listitem', onclick: () => go('result', { id: s.scan_id }) },
+    h('span', { class: 'dot ' + sc.yourLight, 'aria-hidden': 'true' }),
+    h('span', { class: 'grow' }, h('span', { class: 'title' }, placeName(s)), h('span', { class: 'sub' }, `${fmtDay(d, { weekday: 'short', month: 'short', day: 'numeric' })}, ${fmtTime(d)}`)),
+    h('span', { class: 'num', 'aria-label': sc.yourScore == null ? 'No score' : `Your score ${sc.yourScore}, ${lightWord(sc.yourLight)}` }, sc.yourScore == null ? '–' : sc.yourScore));
+}
+routes.home = () => {
+  const r = ring({ big: 'Scan this place', sub: 'Tap to start', label: 'Start a scan' });
+  const recent = state.scans.slice().sort((a, b) => new Date(b.timestamp_local) - new Date(a.timestamp_local)).slice(0, 3);
+  const waiting = state.scans.filter(s => !s.synced).length;
+  const unfinished = savedDraft();
+  mount('home', h('section', {},
+    h('h1', {}, 'How does this place feel?'),
+    h('p', { class: 'muted' }, 'A scan takes about a minute: a short room reading, then a few quick questions.'),
+    h('div', { class: 'ring-wrap' }, h('button', { type: 'button', class: 'ring-button', 'aria-label': 'Start a scan', onclick: () => beginScan() }, r.node)),
+    h('button', { type: 'button', class: 'btn wide', onclick: () => beginScan() }, 'Start a scan'),
+    h('div', { class: 'stack block-gap' },
+      unfinished && h('div', { class: 'notice info' }, h('p', {}, `You have an unfinished scan${unfinished.place || unfinished.private_type ? ' at ' + placeName(unfinished) : ''}.`),
+        h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn compact', onclick: () => beginScan(unfinished) }, 'Continue it'),
+          h('button', { type: 'button', class: 'btn quiet compact', onclick: () => { store.remove('draft'); go('home', {}, true); } }, 'Discard it'))),
+      !api.enabled() && h('p', { class: 'notice info small' }, 'Demo mode: scans are saved on this phone only. To collect data, add your backend link to the settings near the top of index.html.'),
+      api.enabled() && waiting > 0 && h('p', { class: 'notice small' }, `${plural(waiting, 'scan')} saved on this phone will sync when you’re online.`)),
+    recent.length > 0 && h('div', { class: 'block-gap' }, h('h2', {}, 'Recent scans'), recent.map(scanListItem))));
+};
+
+/* ---------------- Scan ---------------- */
+function emptyDraft() {
+  return { place: null, private_type: null, overall_comfort: null, sound_dba: null, light_lux_est: null, light_tier: null, light_method: null,
+    thermal: null, social: null, smell: null, smell_none: false, seat: null, window: null, nature: null, co2: null, stress: null };
+}
+function beginScan(resume) {
+  ensureUser();
+  state.draft = Object.assign(emptyDraft(), resume || {});
+  saveDraft();
+  if (!resume || (!state.draft.place && !state.draft.private_type)) return go('scan-place');
+  go(state.draft.overall_comfort == null ? 'scan-comfort' : 'scan-reading');
+}
+function setDraft(patch) { Object.assign(state.draft, patch); saveDraft(); }
+function cancelScan() { state.draft = null; saveDraft(); go('home', {}, true); }
+const stepLabel = n => h('p', { class: 'muted small' }, `Step ${n} of 4`);
+const cancelLink = () => h('div', { class: 'block-gap' }, h('button', { type: 'button', class: 'linkbtn', onclick: cancelScan }, 'Cancel scan'));
+
+routes['scan-place'] = () => {
+  const results = h('div', {});
+  const status = h('p', { class: 'muted small', role: 'status' });
+  const q = h('input', { type: 'search', id: 'q', placeholder: 'Name of the place', enterkeyhint: 'search', maxlength: 120 });
+  const choose = p => { setDraft({ place: p, private_type: null }); go('scan-comfort'); };
+  const list = places => fill(results, places.length
+    ? places.map(p => h('button', { type: 'button', class: 'listitem', onclick: () => choose(p) },
+        h('span', { class: 'grow' }, h('span', { class: 'title' }, p.name), h('span', { class: 'sub' }, [p.type, p.address].filter(Boolean).join(', ')))))
+    : h('p', {}, 'No matches. Try another name, or type the place in below.'));
+  let busy = false;
+  const guard = fn => async () => { if (busy) return; busy = true; try { await fn(); } finally { busy = false; } };
+  const search = guard(async () => {
+    const term = q.value.trim();
+    if (!term) { q.focus(); return; }
+    status.textContent = 'Searching…';
+    try { list(await searchPlaces(term, state.city)); status.textContent = ''; }
+    catch (e) { fill(results); status.textContent = e.message; }
+  });
+  const nearby = guard(async () => {
+    status.textContent = 'Finding places near you…';
+    try { list(await nearbyPlaces()); status.textContent = 'Your location was used only for this list and wasn’t saved.'; }
+    catch (e) { fill(results); status.textContent = e && e.code === 1 ? 'Location permission is off. Search by name instead.' : (e && e.code ? 'Your location couldn’t be found. Search by name instead.' : e.message); }
+  });
+  q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); search(); } });
+  const mName = h('input', { type: 'text', id: 'mname', placeholder: 'Place name', maxlength: 120 });
+  const mType = h('select', { id: 'mtype' }, MANUAL_TYPES.map(t => h('option', { value: t }, t)));
+  const useManual = () => { const n = mName.value.trim(); if (!n) { mName.focus(); return; } choose({ name: n, type: mType.value, city: state.city, source: 'manual' }); };
+  mount(null, h('section', { class: 'stack' },
+    h('div', {}, stepLabel(1), h('h1', {}, 'Where are you?')),
+    h('div', {}, h('label', { class: 'field', for: 'q' }, 'Search by name'),
+      h('div', { class: 'row' }, q, h('button', { type: 'button', class: 'btn', onclick: search }, 'Search'))),
+    h('button', { type: 'button', class: 'btn quiet wide', onclick: nearby }, 'Suggest places near me'),
+    status, results,
+    h('details', { class: 'more' }, h('summary', {}, 'Can’t find it? Type it in'),
+      h('div', { class: 'stack inside' },
+        h('div', {}, h('label', { class: 'field', for: 'mname' }, 'Name'), mName),
+        h('div', {}, h('label', { class: 'field', for: 'mtype' }, 'Type of place'), mType),
+        h('button', { type: 'button', class: 'btn wide', onclick: useManual }, 'Use this place'))),
+    h('div', { class: 'block-gap' }, h('h3', {}, 'Somewhere private?'),
+      h('p', { class: 'muted small' }, 'Private places are saved by type only, with no name or location.'),
+      h('div', { class: 'seg' }, PRIVATE_TYPES.map(t => h('button', { type: 'button', onclick: () => { setDraft({ place: null, private_type: t }); go('scan-comfort'); } }, t)))),
+    cancelLink()));
+};
+
+routes['scan-comfort'] = () => {
+  const d = state.draft;
+  const nextBtn = h('button', { type: 'button', class: 'btn wide', disabled: d.overall_comfort == null, onclick: () => go('scan-reading') }, 'Next');
+  mount(null, h('section', {},
+    stepLabel(2), h('h1', {}, 'How comfortable do you feel here?'),
+    h('p', { class: 'muted' }, `At ${placeName(d)}, right now.`),
+    sliderQ({ prompt: 'Overall comfort', left: 'Uncomfortable', right: 'Comfortable', value: d.overall_comfort,
+      onChange: v => { setDraft({ overall_comfort: v }); nextBtn.disabled = v == null; } }),
+    nextBtn, cancelLink()));
+};
+
+routes['scan-reading'] = () => {
+  const d = state.draft;
+  const r = ring({ big: 'Ready', label: 'Room reading' });
+  const preview = h('video', { class: 'preview hidden', playsinline: true, muted: true, 'aria-hidden': 'true' });
+  preview.muted = true;
+  const status = h('p', { class: 'muted', role: 'status' }, 'Hold your phone at eye level with the back camera facing the room, not a lamp or window. Stay quiet for five seconds.');
+  const out = h('div', { class: 'stack' });
+  const startBtn = h('button', { type: 'button', class: 'btn wide', onclick: run }, 'Start room reading');
+  const nextBtn = h('button', { type: 'button', class: 'btn wide hidden', onclick: () => go('scan-questions') }, 'Next');
+  const skip = h('button', { type: 'button', class: 'linkbtn', onclick: () => go('scan-questions') }, 'Skip the reading');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function showReadout(res) {
+    const cell = (k, v, note) => h('div', { class: 'cell' }, h('div', { class: 'k' }, k), h('div', { class: 'v' }, v), h('div', { class: 'note' }, note));
+    fill(out,
+      h('div', { class: 'readout' },
+        cell('Sound', isNum(d.sound_dba) ? `${Math.round(d.sound_dba)} dBA` : 'No reading', isNum(d.sound_dba) ? `${soundTier(d.sound_dba)}, estimated` : (res && res.soundError ? sensorMessage(res.soundError, 'Microphone') : '')),
+        cell('Light', d.light_tier || 'No reading', d.light_tier ? 'Estimated by the camera' : (res && res.lightError ? sensorMessage(res.lightError, 'Camera') : ''))),
+      res && res.clipped && h('p', { class: 'notice small' }, 'The sound was loud enough to overload this phone’s microphone, so the real level may be higher than shown.'),
+      res && (res.soundError || res.lightError) && h('p', { class: 'muted small' }, 'To include a missing reading, allow the microphone and camera for this site in your browser settings, then read again. You can also continue without it.'),
+      res && CALIBRATE && h('p', { class: 'notice info small' }, `Calibration values. Raw sound: ${res.dbfs != null ? res.dbfs.toFixed(1) : '–'} dBFS. Brightness: ${res.luma != null ? res.luma.toFixed(4) : '–'}. Lux estimate: ${res.lux != null ? Math.round(res.lux) : '–'} (${res.method || 'none'}).`));
+  }
+  async function run() {
+    startBtn.disabled = true; skip.classList.add('hidden'); nextBtn.classList.add('hidden'); fill(out);
+    status.textContent = 'Reading the room. Hold still and stay quiet…';
+    preview.classList.remove('hidden');
+    r.setBig('Listening'); r.setProgress(0);
+    const reading = startReading(preview, ({ progress, liveDb }) => {
+      r.setProgress(progress);
+      if (liveDb != null) {
+        r.setBig(`${Math.round(clamp(liveDb, 20, 130))} dBA`);
+        if (!reduce) r.core.style.transform = `scale(${0.85 + clamp((liveDb - 30) / 60, 0, 1) * 0.3})`;
+      }
+    });
+    activeReading = reading;
+    const res = await reading.promise;
+    if (reading.cancelled) return; // the person left this screen; it is rebuilt fresh if they come back
+    activeReading = null;
+    r.core.style.transform = '';
+    preview.classList.add('hidden');
+    setDraft({
+      sound_dba: isNum(res.dba) ? Math.round(res.dba * 10) / 10 : null,
+      light_lux_est: isNum(res.lux) ? Math.round(res.lux) : null,
+      light_tier: lightTier(res.lux),
+      light_method: res.method
+    });
+    const got = isNum(d.sound_dba) || d.light_tier;
+    r.setBig(got ? 'Done' : 'No reading'); r.setProgress(got ? 1 : 0);
+    status.textContent = got ? 'Only these numbers are kept. No audio or images are saved.' : 'The reading didn’t work this time.';
+    showReadout(res);
+    startBtn.textContent = 'Read again'; startBtn.classList.add('quiet'); startBtn.disabled = false;
+    nextBtn.classList.remove('hidden'); skip.classList.toggle('hidden', !!got);
+  }
+  if (isNum(d.sound_dba) || d.light_tier) { // coming back to this step with a reading already taken
+    r.setBig('Done'); r.setProgress(1); showReadout(null);
+    startBtn.textContent = 'Read again'; startBtn.classList.add('quiet'); nextBtn.classList.remove('hidden'); skip.classList.add('hidden');
+  }
+  mount(null, h('section', { class: 'stack' },
+    h('div', {}, stepLabel(3), h('h1', {}, 'Room reading')),
+    h('div', { class: 'ring-wrap' }, r.node),
+    h('div', { class: 'row' }, preview, status),
+    out, nextBtn, startBtn, skip, cancelLink()));
+};
+
+routes['scan-questions'] = () => {
+  const d = state.draft;
+  const natureSlot = h('div', {});
+  function paintNature() {
+    if (d.window === 'yes' || d.window === 'outdoors') {
+      fill(natureSlot, choiceQ({
+        prompt: d.window === 'outdoors' ? 'Can you see trees or other natural plant life from where you are?' : 'Can you see trees or other natural plant life through the window?',
+        options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }], value: d.nature, onChange: v => setDraft({ nature: v })
+      }));
+    } else { if (d.nature != null) setDraft({ nature: null }); fill(natureSlot); }
+  }
+  const noSmell = toggleButton('No noticeable smell', d.smell_none, on => { setDraft({ smell_none: on }); if (on) { setDraft({ smell: null }); smellQ.setValue(null); } });
+  const smellQ = sliderQ({ prompt: 'How does this place smell?', left: 'Unpleasant', right: 'Pleasant', value: d.smell, optional: true,
+    onChange: v => { setDraft({ smell: v }); if (v != null) { setDraft({ smell_none: false }); noSmell.setPressed(false); } } });
+  put(smellQ, h('div', { class: 'extra seg' }, noSmell));
+  const noSeat = toggleButton('No seating / N/A', d.seat === 'na', on => { setDraft({ seat: on ? 'na' : null }); if (on) seatQ.setValue(null); });
+  const seatQ = choiceQ({ prompt: 'How comfortable is your seat?', hint: 'Consider the cushion, back support, and any pressure points.', scale: true,
+    ends: ['0 Unacceptable', 'Excellent 10'], options: Array.from({ length: 11 }, (_, i) => ({ label: String(i), value: i })),
+    value: isNum(d.seat) ? d.seat : null, extra: noSeat,
+    onChange: v => { setDraft({ seat: v }); if (v != null) noSeat.setPressed(false); } });
+  const co2 = h('input', { type: 'number', id: 'co2', inputmode: 'numeric', min: 300, max: 10000, step: 1, placeholder: 'For example, 850', value: d.co2 == null ? '' : d.co2 });
+  const stress = h('input', { type: 'number', id: 'stress', inputmode: 'numeric', min: 0, max: 100, step: 1, placeholder: '0 to 100', value: d.stress == null ? '' : d.stress });
+  const extras = h('details', { class: 'more', open: d.co2 != null || d.stress != null },
+    h('summary', {}, 'Add measurements (optional)'),
+    h('div', { class: 'stack inside' },
+      h('div', {}, h('label', { class: 'field', for: 'co2' }, 'CO₂ (ppm)'), h('p', { class: 'muted small' }, 'From a CO₂ monitor, if you have one.'), co2),
+      h('div', {}, h('label', { class: 'field', for: 'stress' }, 'Garmin stress level'), h('p', { class: 'muted small' }, 'The 0–100 stress number on your Garmin watch right now.'), stress)));
+  const error = h('p', { class: 'notice hazard small hidden', role: 'alert' });
+  const saveBtn = h('button', { type: 'button', class: 'btn wide', onclick: finish }, 'Save scan');
+  function readNumber(input, lo, hi, message) {
+    const t = input.value.trim();
+    if (t === '') return { ok: true, value: null };
+    const n = Number(t);
+    if (!isFinite(n) || n < lo || n > hi) { error.textContent = message; error.classList.remove('hidden'); extras.open = true; input.focus(); return { ok: false }; }
+    return { ok: true, value: Math.round(n) };
+  }
+  function finish() {
+    error.classList.add('hidden');
+    const c = readNumber(co2, 300, 10000, 'Enter CO₂ between 300 and 10,000 ppm, or leave it blank.'); if (!c.ok) return;
+    const st = readNumber(stress, 0, 100, 'Enter a Garmin stress level from 0 to 100, or leave it blank.'); if (!st.ok) return;
+    setDraft({ co2: c.value, stress: st.value });
+    saveBtn.disabled = true; // one tap, one scan
+    saveScan();
+  }
+  paintNature();
+  mount(null, h('section', {},
+    stepLabel(4), h('h1', {}, 'A few quick questions'),
+    h('p', { class: 'muted' }, 'Skip anything you’re unsure about.'),
+    h('div', {},
+      sliderQ({ prompt: 'How thermally comfortable are you?', left: 'Uncomfortable', right: 'Comfortable', value: d.thermal, optional: true, onChange: v => setDraft({ thermal: v }) }),
+      choiceQ({ prompt: 'How crowded does this place feel?', scale: true, ends: ['1 Crowded', 'Uncrowded 7'],
+        options: [1, 2, 3, 4, 5, 6, 7].map(n => ({ label: String(n), value: n })), value: d.social, onChange: v => setDraft({ social: v }) }),
+      smellQ, seatQ,
+      choiceQ({ prompt: 'Can you readily see outside a window from where you are?',
+        options: [{ label: 'Yes', value: 'yes' }, { label: 'No', value: 'no' }, { label: 'I’m outdoors', value: 'outdoors' }],
+        value: d.window, onChange: v => { setDraft({ window: v }); paintNature(); } }),
+      natureSlot),
+    h('div', { class: 'stack block-gap' }, extras, error, saveBtn),
+    cancelLink()));
+};
+
+function saveScan() {
+  const now = new Date(), d = state.draft;
+  const s = Object.assign({}, d, {
+    scan_id: newId(), user_id: ensureUser(),
+    timestamp_local: localISO(now), day_of_week: DAYS[now.getDay()], hour: now.getHours(),
+    stress_device: d.stress != null ? 'Garmin' : null,
+    app_version: CONFIG.APP_VERSION, synced: false
+  });
+  const sc = scoreScan(s, null); // the stored score always uses equal weights
+  Object.assign(s, { sound_tier: soundTier(s.sound_dba), score: sc.placeScore, stoplight: sc.placeLight, hazard: sc.hazards.length > 0, low_confidence: sc.lowConfidence, answered_count: sc.answered });
+  state.scans.push(s); saveScans();
+  state.draft = null; saveDraft();
+  go('result', { id: s.scan_id }, true);
+  if (!api.enabled()) return toast('Scan saved on this phone (demo mode)');
+  syncPending().then(() => {
+    toast(s.synced ? 'Scan saved' : 'Scan saved on this phone. It will sync when you’re online.');
+    const st = history.state; // still looking at this scan? refresh it so the sync note and shared place info are current
+    if (s.synced && st && st.v === 'result' && st.p && st.p.id === s.scan_id) { const y = window.scrollY; routes.result({ id: s.scan_id }); window.scrollTo(0, y); }
+  });
+}
+
+/* ---------------- Result ---------------- */
+let summarySlot = null;
+routes.result = ({ id }) => {
+  const s = state.scans.find(x => x.scan_id === id);
+  const sc = scoreScan(s, state.weights), res = sc.results, d = new Date(s.timestamp_local);
+  const r = ring({ color: sc.placeLight === 'none' ? '' : sc.placeLight, progress: sc.placeScore == null ? 0 : sc.placeScore / 100,
+    label: sc.placeScore == null ? 'No score yet' : `Place score ${sc.placeScore}, ${lightWord(sc.placeLight)}` });
+  r.setSub(lightWord(sc.placeLight)); r.setBig(sc.placeScore == null ? '–' : String(sc.placeScore), true);
+  const windowText = s.window == null ? 'Skipped' : s.window === 'no' ? 'No window view'
+    : (s.window === 'outdoors' ? 'Outdoors' : 'Window view') + (s.nature === 'yes' ? ', with nature in view' : s.nature === 'no' ? ', no nature in view' : '');
+  const reading = {
+    sound: isNum(s.sound_dba) ? `${Math.round(s.sound_dba)} dBA, ${soundTier(s.sound_dba)} (estimate)` : 'Not measured',
+    light: s.light_tier ? `${s.light_tier} (estimate)${s.light_tier === 'Dark' ? ', not scored' : ''}` : 'Not measured',
+    thermal: isNum(s.thermal) ? `${s.thermal} of 100` : 'Skipped',
+    social: isNum(s.social) ? `${s.social} of 7 (1 crowded, 7 uncrowded)` : 'Skipped',
+    smell: s.smell_none ? 'No noticeable smell, not scored' : isNum(s.smell) ? `${s.smell} of 100` : 'Skipped',
+    seat: s.seat === 'na' ? 'No seating, not scored' : isNum(s.seat) ? `${s.seat} of 10` : 'Skipped',
+    nature: windowText,
+    co2: isNum(s.co2) ? `${s.co2} ppm, ${co2Tier(s.co2)}` : 'Not added',
+    stress: isNum(s.stress) ? `${s.stress} of 100` : 'Not added'
+  };
+  summarySlot = h('div', {});
+  mount('result', h('section', {}, // any tab name shows the bottom bar; 'result' highlights none
+    h('p', { class: 'muted small' }, `${fmtDay(d, { weekday: 'long', month: 'long', day: 'numeric' })}, ${fmtTime(d)}`),
+    h('h1', {}, placeName(s)),
+    h('p', { class: 'muted' }, s.place ? s.place.type : 'Private place'),
+    h('div', { class: 'ring-wrap' }, r.node),
+    h('div', { class: 'row middle' }, h('span', { class: 'pill' }, h('span', { class: 'dot ' + sc.yourLight, 'aria-hidden': 'true' }), `Your score ${sc.yourScore == null ? '–' : sc.yourScore}`)),
+    h('p', { class: 'muted small center', style: 'margin-top:10px' }, 'The large number weighs every measure equally, the same for everyone. Your score uses your What matters settings. Color cutoffs are provisional.'),
+    h('div', { class: 'stack block-gap' },
+      sc.hazards.map(t => h('p', { class: 'notice hazard' }, h('strong', {}, 'Automatic red. '), t)),
+      sc.placeScore == null && h('p', { class: 'notice' }, 'There isn’t enough here to score. Answer more questions next time.'),
+      sc.placeScore != null && sc.lowConfidence && h('p', { class: 'notice' }, h('strong', {}, 'Low confidence. '), `Only ${sc.answered} of ${METRICS.length} measures were answered.`),
+      api.enabled() && !s.synced && h('p', { class: 'notice small' }, 'Saved on this phone. It will sync when you’re online.'),
+      isNum(s.overall_comfort) && h('p', {}, `You rated your overall comfort ${s.overall_comfort} of 100.`)),
+    h('div', { class: 'block-gap' }, h('h2', {}, 'Breakdown'),
+      h('table', { class: 'breakdown' }, h('tbody', {}, METRICS.map(m => h('tr', {},
+        h('td', {}, h('strong', {}, m.label), h('br'), h('span', { class: 'muted small' }, reading[m.key])),
+        h('td', {}, res[m.key].points == null ? '–' : res[m.key].points)))))),
+    summarySlot,
+    h('div', { class: 'stack block-gap' },
+      h('button', { type: 'button', class: 'btn wide', onclick: () => beginScan() }, 'Scan another place'),
+      h('button', { type: 'button', class: 'btn quiet wide', onclick: () => go('home') }, 'Done'))));
+  loadPlaceSummary(s);
+};
+async function loadPlaceSummary(s) {
+  const slot = summarySlot;
+  if (!slot || !api.enabled() || !s.synced || !s.place || !s.place.place_id) return;
+  try {
+    const p = (await api.getPlace(s.place.place_id)).place;
+    if (!p || !p.scan_count || slot !== summarySlot || !slot.isConnected) return;
+    fill(slot, h('div', { class: 'block-gap' }, h('h2', {}, 'This place, from everyone'),
+      h('p', {}, `${plural(p.scan_count, 'scan')}. Average score ${isNum(p.avg_score) ? Math.round(p.avg_score) : '–'}.`),
+      (p.recent || []).slice(0, 8).map(x => h('div', { class: 'row', style: 'padding:4px 0' }, h('span', { class: 'dot ' + (x.stoplight || ''), 'aria-hidden': 'true' }), `${x.day_of_week}, ${hourLabel(Number(x.hour))}: ${lightWord(x.stoplight)}`))));
+  } catch (e) { /* shared place info is a bonus; stay quiet if it can't load */ }
+}
+
+/* ---------------- Timeline ---------------- */
+const tl = { mode: 'week', anchor: new Date() };
+routes.timeline = () => {
+  const byDay = {};
+  for (const s of state.scans) { const k = dateKey(new Date(s.timestamp_local)); (byDay[k] = byDay[k] || []).push(s); }
+  Object.values(byDay).forEach(a => a.sort((x, y) => new Date(x.timestamp_local) - new Date(y.timestamp_local)));
+  const a = new Date(tl.anchor.getFullYear(), tl.anchor.getMonth(), tl.anchor.getDate());
+  const redraw = () => routes.timeline();
+  const openDay = d => { tl.mode = 'day'; tl.anchor = d; redraw(); };
+  const shift = dir => { const d = new Date(a); if (tl.mode === 'day') d.setDate(d.getDate() + dir); else if (tl.mode === 'week') d.setDate(d.getDate() + 7 * dir); else d.setMonth(d.getMonth() + dir, 1); tl.anchor = d; redraw(); };
+  const light = s => scoreScan(s, state.weights).yourLight;
+  let title, body;
+  if (tl.mode === 'day') {
+    title = fmtDay(a, { weekday: 'long', month: 'long', day: 'numeric' });
+    const list = byDay[dateKey(a)] || [];
+    body = list.length ? h('div', {}, list.map(scanListItem)) : h('p', { class: 'muted' }, 'No scans this day.');
+  } else if (tl.mode === 'week') {
+    const start = new Date(a); start.setDate(a.getDate() - ((a.getDay() + 6) % 7)); // weeks start Monday
+    title = `Week of ${fmtDay(start, { month: 'long', day: 'numeric' })}`;
+    body = h('div', {}, Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      const list = byDay[dateKey(d)] || [];
+      return h('div', { class: 'week-row' },
+        h('button', { type: 'button', class: 'linkbtn day', onclick: () => openDay(d) }, fmtDay(d, { weekday: 'short', day: 'numeric' })),
+        h('div', { class: 'dots' }, list.length
+          ? list.map(s => h('button', { type: 'button', class: 'dot ' + light(s), 'aria-label': `${placeName(s)}, ${lightWord(light(s))}`, onclick: () => go('result', { id: s.scan_id }) }))
+          : h('span', { class: 'muted small' }, 'No scans')));
+    }));
+  } else {
+    const first = new Date(a.getFullYear(), a.getMonth(), 1);
+    const daysIn = new Date(a.getFullYear(), a.getMonth() + 1, 0).getDate();
+    const todayKey = dateKey(new Date());
+    title = fmtDay(first, { month: 'long', year: 'numeric' });
+    const cells = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(x => h('div', { class: 'hd', 'aria-hidden': 'true' }, x));
+    for (let i = 0; i < (first.getDay() + 6) % 7; i++) cells.push(h('div', { class: 'cell blank' }));
+    for (let n = 1; n <= daysIn; n++) {
+      const d = new Date(a.getFullYear(), a.getMonth(), n), k = dateKey(d), list = byDay[k] || [];
+      cells.push(h('button', { type: 'button', class: 'cell' + (k === todayKey ? ' today' : ''), 'aria-label': `${fmtDay(d, { month: 'long', day: 'numeric' })}, ${plural(list.length, 'scan')}`, onclick: () => openDay(d) },
+        h('span', {}, n), h('span', { class: 'dots' }, list.slice(0, 6).map(s => h('span', { class: 'dot ' + light(s) })))));
+    }
+    body = h('div', { class: 'cal' }, cells);
+  }
+  mount('timeline', h('section', { class: 'stack' },
+    h('h1', {}, 'Your timeline'),
+    h('div', { class: 'tabs', role: 'group', 'aria-label': 'Timeline view' }, ['day', 'week', 'month'].map(m => h('button', { type: 'button', 'aria-pressed': String(tl.mode === m), onclick: () => { tl.mode = m; redraw(); } }, cap(m)))),
+    h('div', { class: 'row spread' },
+      h('button', { type: 'button', class: 'btn quiet compact', 'aria-label': 'Previous ' + tl.mode, onclick: () => shift(-1) }, '‹'),
+      h('h3', { style: 'margin:0;text-align:center;flex:1' }, title),
+      h('button', { type: 'button', class: 'btn quiet compact', 'aria-label': 'Next ' + tl.mode, onclick: () => shift(1) }, '›')),
+    state.scans.length ? body : h('div', { class: 'panel stack' }, h('p', {}, 'No scans yet. Your first scan will appear here.'), h('button', { type: 'button', class: 'btn', onclick: () => beginScan() }, 'Start a scan')),
+    h('p', { class: 'muted small' }, 'Colors show your score, based on your What matters settings. Only you can see this timeline.')));
+};
+
+/* ---------------- What matters ---------------- */
+let weightTimer;
+function queueWeightSync() {
+  if (!api.enabled() || !state.userId) return;
+  clearTimeout(weightTimer);
+  weightTimer = setTimeout(() => api.saveWeights(state.userId, state.weights).catch(() => {}), 1500);
+}
+routes.weights = () => {
+  const levels = [{ label: 'Off', value: 0 }, { label: 'A little', value: 1 }, { label: 'Some', value: 2 }, { label: 'A lot', value: 3 }];
+  const setW = (k, v) => { state.weights[k] = v; store.set('weights', state.weights); queueWeightSync(); };
+  mount('weights', h('section', { class: 'stack' },
+    h('h1', {}, 'What matters to you'),
+    h('p', {}, 'Choose how much each measure counts toward your score. Change these anytime; your timeline updates right away. Shared place scores always weigh every measure equally, so they stay comparable for everyone.'),
+    h('div', { class: 'panel' }, METRICS.map(m => {
+      const buttons = levels.map(l => h('button', { type: 'button', 'aria-pressed': String(state.weights[m.key] === l.value),
+        onclick: () => { setW(m.key, l.value); buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(levels[i].value === l.value))); } }, l.label));
+      return h('div', { class: 'wrow' }, h('div', { class: 'name' }, m.label), h('div', { class: 'seg', role: 'group', 'aria-label': m.label }, buttons));
+    })),
+    h('button', { type: 'button', class: 'btn quiet wide', onclick: () => { state.weights = defaultWeights(); store.set('weights', state.weights); queueWeightSync(); routes.weights(); toast('Reset to equal weights'); } }, 'Reset to defaults')));
+};
+
+/* ---------------- Settings ---------------- */
+routes.settings = () => {
+  const city = h('input', { type: 'text', id: 'scity', value: state.city, placeholder: 'For example, Denver', maxlength: 80 });
+  const codeIn = h('input', { type: 'text', id: 'rcode', placeholder: 'ABCD-EFGH-JKMN', autocapitalize: 'characters', autocomplete: 'off', spellcheck: 'false', maxlength: 20 });
+  const codeShown = h('div', { class: 'code' }, state.userId || 'Created with your first scan');
+  const msg = h('p', { class: 'small', role: 'status' });
+  let busy = false;
+  async function restore() {
+    if (busy) return;
+    const c = normalizeCode(codeIn.value);
+    if (!c) { msg.textContent = 'That code isn’t in the right format. It looks like ABCD-EFGH-JKMN.'; return; }
+    if (!api.enabled()) { msg.textContent = 'Restoring needs the backend, which isn’t connected in demo mode.'; return; }
+    busy = true; msg.textContent = 'Restoring…';
+    try {
+      const data = await api.getMyScans(c);
+      const found = (data.scans || []).filter(validScan);
+      if (!found.length) { msg.textContent = 'No scans were found for that code. Check it and try again.'; return; }
+      // Keep anything on this phone that hasn't reached the server yet, and attach it to the restored code.
+      const ids = new Set(found.map(x => x.scan_id));
+      const local = state.scans.filter(s => !s.synced && !ids.has(s.scan_id)).map(s => Object.assign(s, { user_id: c }));
+      state.userId = c; store.set('userId', c);
+      state.scans = found.map(x => Object.assign(x, { synced: true })).concat(local);
+      saveScans();
+      if (data.weights) { state.weights = cleanWeights(data.weights); store.set('weights', state.weights); }
+      syncPending();
+      codeShown.textContent = c; codeIn.value = '';
+      msg.textContent = `Restored ${plural(found.length, 'scan')}.`;
+    } catch (e) { msg.textContent = e.message || 'Restore didn’t work. Try again later.'; }
+    finally { busy = false; }
+  }
+  async function removeAll() {
+    if (!confirm('Delete all your scans and settings? This can’t be undone.')) return;
+    try {
+      if (api.enabled() && state.userId) await api.deleteMyData(state.userId);
+      ['scans', 'weights', 'userId', 'draft'].forEach(k => store.remove(k));
+      state.scans = []; state.weights = defaultWeights(); state.userId = null; state.draft = null;
+      routes.settings(); toast('Your data was deleted');
+    } catch (e) { toast('Delete didn’t go through. Check your connection and try again.'); }
+  }
+  mount('settings', h('section', { class: 'stack' },
+    h('h1', {}, 'Settings'),
+    h('div', { class: 'panel stack' }, h('h3', {}, 'Your city'),
+      h('label', { class: 'muted small', for: 'scity' }, 'Used to find places when you search by name.'), city,
+      h('button', { type: 'button', class: 'btn quiet', onclick: () => { state.city = city.value.trim(); store.set('city', state.city); toast('City saved'); } }, 'Save city')),
+    h('div', { class: 'panel stack' }, h('h3', {}, 'Recovery code'),
+      h('p', { class: 'muted small' }, 'Optional. Use this code to bring your history to a new phone. Keep it private: anyone with it can see your timeline.'),
+      codeShown,
+      state.userId && navigator.clipboard && h('button', { type: 'button', class: 'btn quiet', onclick: () => navigator.clipboard.writeText(state.userId).then(() => toast('Code copied'), () => toast('Copying didn’t work. Write the code down instead.')) }, 'Copy code'),
+      h('div', {}, h('label', { class: 'field', for: 'rcode' }, 'Restore history with a code'), codeIn),
+      h('button', { type: 'button', class: 'btn quiet', onclick: restore }, 'Restore history'), msg),
+    h('div', { class: 'panel stack' }, h('h3', {}, 'Privacy'),
+      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('privacy') }, 'Read how your information is handled'),
+      h('div', {}, h('button', { type: 'button', class: 'btn danger', onclick: removeAll }, 'Delete all my data'))),
+    h('p', { class: 'muted small' }, `Version ${CONFIG.APP_VERSION}${api.enabled() ? '' : ', demo mode'}`)));
+};
+routes.privacy = () => mount('settings', h('section', { class: 'stack' }, h('h1', {}, 'Privacy'), privacyText(),
+  h('button', { type: 'button', class: 'btn quiet wide', onclick: () => go('settings') }, 'Back to settings')));
+
+/* =====================================================================
+   START
+   ===================================================================== */
+$tabbar.querySelectorAll('button').forEach(b => b.addEventListener('click', () => go(b.dataset.tab)));
+document.getElementById('modeNote').textContent = api.enabled() ? '' : 'Demo mode';
+window.addEventListener('online', syncPending);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncPending(); });
+try { history.replaceState({ v: 'home', p: {} }, ''); } catch (e) {}
+onboard();
+syncPending();
+</script>
+</body>
+</html>
