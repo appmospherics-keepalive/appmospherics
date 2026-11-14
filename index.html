@@ -21,7 +21,7 @@
 :root {
   --bg: #EEF2F0; --surface: #FFFFFF; --ink: #1D2B3A; --muted: #55666F; --line: #D3DCD8;
   --accent: #1F7A74; --accent-ink: #FFFFFF; --accent-soft: #D9ECE9;
-  --green: #2E8B57; --amber: #B97F0C; --red: #C0412E; --none: #8A989E;
+  --green: #2E8B57; --amber: #F2B705; --red: #C0412E; --none: #8A989E;
   --display: "Bricolage Grotesque", "Atkinson Hyperlegible", system-ui, sans-serif;
   --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme: light;
@@ -33,14 +33,14 @@
   :root:not([data-theme="light"]) {
     --bg: #111A22; --surface: #18242E; --ink: #E6ECEA; --muted: #9AAAB0; --line: #2B3A45;
     --accent: #4FB3AA; --accent-ink: #0E1A20; --accent-soft: #1E3A3B;
-    --green: #4CB97A; --amber: #E2A93A; --red: #E46A55; --none: #71808A;
+    --green: #4CB97A; --amber: #F5C542; --red: #E46A55; --none: #71808A;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111A22; --surface: #18242E; --ink: #E6ECEA; --muted: #9AAAB0; --line: #2B3A45;
   --accent: #4FB3AA; --accent-ink: #0E1A20; --accent-soft: #1E3A3B;
-  --green: #4CB97A; --amber: #E2A93A; --red: #E46A55; --none: #71808A;
+  --green: #4CB97A; --amber: #F5C542; --red: #E46A55; --none: #71808A;
   color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -68,6 +68,8 @@ h3 { font-size: 19px; font-weight: 500; }
 p { margin: 0 0 12px; max-width: 34em; }
 ol { margin: 0; padding-left: 22px; }
 ol li + li { margin-top: 6px; }
+ul.keypoints { margin: 0; padding-left: 20px; }
+ul.keypoints li + li { margin-top: 10px; }
 .muted { color: var(--muted); }
 .small { font-size: 14px; }
 .center { text-align: center; margin-left: auto; margin-right: auto; }
@@ -96,6 +98,7 @@ ol li + li { margin-top: 6px; }
 .listitem .num { font-family: var(--display); font-weight: 700; font-size: 20px; }
 
 .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; background: var(--none); display: inline-block; }
+.dot { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); }
 .dot.green { background: var(--green); } .dot.yellow { background: var(--amber); } .dot.red { background: var(--red); }
 button.dot { border: 0; padding: 0; width: 24px; height: 24px; cursor: pointer; }
 
@@ -136,9 +139,9 @@ details.more .inside { padding-bottom: 14px; }
 .ring .core { fill: var(--accent-soft); transform-origin: 50% 50%; transition: transform 0.15s ease-out; }
 .ring text { font-family: var(--display); fill: var(--ink); }
 .ring.green .progress { stroke: var(--green); } .ring.yellow .progress { stroke: var(--amber); } .ring.red .progress { stroke: var(--red); }
-.ring.green .core { fill: color-mix(in srgb, var(--green) 18%, transparent); }
-.ring.yellow .core { fill: color-mix(in srgb, var(--amber) 20%, transparent); }
-.ring.red .core { fill: color-mix(in srgb, var(--red) 18%, transparent); }
+.ring.green .core { fill: color-mix(in srgb, var(--green) 18%, var(--surface)); }
+.ring.yellow .core { fill: color-mix(in srgb, var(--amber) 24%, var(--surface)); }
+.ring.red .core { fill: color-mix(in srgb, var(--red) 18%, var(--surface)); }
 .ring-button { background: none; border: 0; padding: 0; cursor: pointer; display: block; border-radius: 50%; }
 
 .preview { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: var(--line); border: 2px solid var(--line); flex: none; }
@@ -196,7 +199,8 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
     <span class="mode-note" id="modeNote"></span>
   </header>
   <main id="view"></main>
-  <p class="attrib">Place data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
+  <p class="attrib"><button type="button" class="linkbtn small" id="policyLink">Privacy policy</button></p>
+  <p class="attrib" style="margin-top:4px">Place data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
 </div>
 
 <nav class="tabbar hidden" id="tabbar" aria-label="Main">
@@ -217,7 +221,7 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
    ===================================================================== */
 // === CONFIG START
 const CONFIG = {
-  APP_VERSION: '2.0.0-alpha.2',
+  APP_VERSION: '2.0.0-alpha.5',
 
   // Paste your Google Apps Script web app URL here (see the setup guide).
   // Leave empty to run in demo mode: scans are saved on this phone only.
@@ -266,7 +270,7 @@ const CONFIG = {
   // Low confidence when fewer than this many of the 9 scored measures are answered.
   LOW_CONFIDENCE_MIN_ANSWERED: 5,
 
-  NEARBY_RADIUS_M: 100,
+  NEARBY_RADIUS_M: 250,              // widened automatically when the phone's location is imprecise, up to 600 m
   DEFAULT_WEIGHT: 2                  // 0 = off, 3 = matters a lot
 };
 // === CONFIG END
@@ -328,7 +332,7 @@ function metricResults(s) {
   const lp = s.light_tier ? CONFIG.LIGHT.POINTS[s.light_tier] : null;
   r.light = pts(!!s.light_tier, lp);
   r.thermal = pts(isNum(s.thermal), s.thermal);
-  r.social = pts(isNum(s.social), isNum(s.social) ? (s.social - 1) / 6 * 100 : null);
+  r.social = pts(isNum(s.social), isNum(s.social) ? (7 - s.social) / 6 * 100 : null); // 1 uncrowded (100 points) to 7 crowded (0 points), from 2.0.0-alpha.5 on
   r.smell = s.smell_none ? pts(true, null) : pts(isNum(s.smell), s.smell);
   r.seat = s.seat === 'na' ? pts(true, null) : pts(isNum(s.seat), isNum(s.seat) ? s.seat * 10 : null);
   if (s.window === 'no') r.nature = pts(true, 0);
@@ -690,12 +694,30 @@ async function searchPlaces(term, city) {
       type: osmTypeLabel(r.category, r.type), lat: Number(r.lat), lon: Number(r.lon), city: city || '', source: 'osm' };
   }));
 }
-function getPosition() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error('Location isn’t available on this device. Search by name instead.'));
-    navigator.geolocation.getCurrentPosition(p => resolve(p.coords), reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 });
-  });
+function locate(options) {
+  return new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(p => resolve(p.coords), reject, options));
 }
+// Precise first; if that is slow or unavailable (common indoors), accept a rougher recent fix.
+async function getPosition() {
+  if (!navigator.geolocation) throw new Error('Location isn’t available on this device. Search by name instead.');
+  try { return await locate({ enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }); }
+  catch (e) {
+    if (e && e.code === 1) throw e; // permission refused: retrying won't help
+    return await locate({ enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
+  }
+}
+function locationMessage(e) {
+  if (e && e.code === 1) {
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    return ios
+      ? 'Location is blocked for this site. On iPhone, open Settings, then Privacy & Security, then Location Services, then Safari Websites, and choose “While Using the App.” Then try again, or search by name.'
+      : 'Location is blocked for this site. Allow location for it in your browser’s site settings, then try again, or search by name.';
+  }
+  if (e && e.code === 2) return 'Your phone couldn’t find your location. Check that Location Services are on, or search by name.';
+  if (e && e.code === 3) return 'Finding your location took too long. Try again, or search by name.';
+  return (e && e.message) || 'Nearby places didn’t load. Search by name instead.';
+}
+const OVERPASS_SERVERS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
 function distanceM(lat1, lon1, lat2, lon2) {
   const R = 6371000, rad = x => x * Math.PI / 180;
   const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lon2 - lon1) / 2) ** 2;
@@ -704,13 +726,18 @@ function distanceM(lat1, lon1, lat2, lon2) {
 // The phone's position is used only inside this function and is never stored or sent to the backend.
 async function nearbyPlaces() {
   const coords = await getPosition();
-  const lat = coords.latitude, lon = coords.longitude, R = CONFIG.NEARBY_RADIUS_M;
+  const lat = coords.latitude, lon = coords.longitude;
+  const R = Math.round(clamp(isNum(coords.accuracy) ? coords.accuracy * 1.5 : 0, CONFIG.NEARBY_RADIUS_M, 600));
   const query = `[out:json][timeout:15];(${OSM_KEYS.map(k => `nwr(around:${R},${lat},${lon})["name"]["${k}"];`).join('')});out center 40;`;
-  await osmThrottle();
-  let res;
-  try { res = await fetchWithTimeout('https://overpass-api.de/api/interpreter', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(query) }, 20000); } catch (e) { res = null; }
-  if (!res || !res.ok) throw new Error('Nearby places aren’t loading. Search by name instead.');
-  const data = await res.json();
+  let data = null;
+  for (const server of OVERPASS_SERVERS) { // the public map servers are sometimes busy, so try the next one
+    try {
+      await osmThrottle();
+      const res = await fetchWithTimeout(server, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(query) }, 15000);
+      if (res.ok) { data = await res.json(); break; }
+    } catch (e) { /* try the next server */ }
+  }
+  if (!data) throw new Error('The map service is busy right now. Search by name instead.');
   const list = (data.elements || []).map(e => {
     const t = e.tags || {};
     const key = OSM_KEYS.find(k => t[k]);
@@ -856,6 +883,7 @@ function go(name, params, replace) {
 function show(st) {
   stopReading();
   let name = st && st.v, params = (st && st.p) || {};
+  if (st && st.v === 'policy') return routes.policy();
   if (!state.consented) return onboard();
   if (SCAN_STEPS.includes(name) && !state.draft) name = 'home';
   if (name === 'result' && !state.scans.some(s => s.scan_id === params.id)) name = 'home';
@@ -864,26 +892,20 @@ function show(st) {
 window.addEventListener('popstate', e => show(e.state));
 
 /* ---------------- First run ---------------- */
-function privacyText() {
-  const sec = (title, ...paras) => h('div', {}, h('h3', {}, title), paras.map(t => h('p', {}, t)));
-  return h('div', { class: 'panel stack' },
-    sec('What we collect',
-      'The scans you choose to make: sound and light readings from your phone, your answers to the scan questions, and the date and time. No audio or images are saved, only the resulting numbers.',
-      'The place you select. For public places, we store the venue, never your exact position. Your phone’s location is used only to suggest nearby places and is never saved. For private places like home, we store only the type of place.',
-      'Optional readings you add, such as CO₂ or stress.'),
-    sec('What we don’t collect', 'Your name, email, or contact information. No login is required.'),
-    sec('Your history', 'Your personal history is linked to this device. If you clear your browser data or switch phones, your history may not carry over. Your past scans still count toward shared place data. Want a backup? You’ll find a recovery code in Settings.'),
-    sec('Who sees what', 'Your timeline is visible only to you. Your scans also contribute, without your code attached, to shared summaries of places. Shared place information shows only the day of the week and hour, never dates. This research data may be used in studies, publications, and partnerships, but only in combined form, never as individual timelines.'),
-    sec('Your choices', 'You can delete all your data anytime in Settings.'),
-    sec('Please note', 'appmospherics is not a medical tool. Readings from phone sensors are estimates. You must be 18 or older to use the app.'));
-}
 const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 function onboard() {
   if (!state.consented) {
     return mount(null, h('section', { class: 'stack' },
       h('h1', {}, 'Before you start'),
-      h('p', {}, 'appmospherics helps you discover which environments help you feel your best. Here’s how your information is handled.'),
-      privacyText(),
+      h('p', {}, 'appmospherics helps you discover which environments help you feel your best.'),
+      h('div', { class: 'panel' }, h('ul', { class: 'keypoints' },
+        h('li', {}, h('strong', {}, 'Nothing identifies you. '), 'No name, email or login. Your scans are linked to a random code on this phone.'),
+        h('li', {}, h('strong', {}, 'Only numbers are kept. '), 'Room readings use the microphone and camera for a few seconds; no audio or images are saved.'),
+        h('li', {}, h('strong', {}, 'Your location isn’t tracked. '), 'It’s used only if you ask for nearby places, and never saved.'),
+        h('li', {}, h('strong', {}, 'Your timeline is private. '), 'Your scans also count, without your code, toward shared place information and research.'),
+        h('li', {}, h('strong', {}, 'You can delete everything '), 'anytime in Settings.'))),
+      h('p', { class: 'muted small' }, 'appmospherics is not a medical tool, and its readings are estimates. You must be 18 or older to use the app.'),
+      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('policy') }, 'Read the full privacy policy'),
       h('button', { type: 'button', class: 'btn wide', onclick: () => { state.consented = true; store.set('consented', true); onboard(); } }, 'I agree')));
   }
   if (!isStandalone() && !state.installSeen) {
@@ -974,8 +996,12 @@ routes['scan-place'] = () => {
   });
   const nearby = guard(async () => {
     status.textContent = 'Finding places near you…';
-    try { list(await nearbyPlaces()); status.textContent = 'Your location was used only for this list and wasn’t saved.'; }
-    catch (e) { fill(results); status.textContent = e && e.code === 1 ? 'Location permission is off. Search by name instead.' : (e && e.code ? 'Your location couldn’t be found. Search by name instead.' : e.message); }
+    try {
+      const found = await nearbyPlaces();
+      if (found.length) { list(found); status.textContent = 'Your location was used only for this list and wasn’t saved.'; }
+      else { fill(results); status.textContent = 'No named places were found near you on the map. Search by name, or type the place in below.'; }
+    }
+    catch (e) { fill(results); status.textContent = locationMessage(e); }
   });
   q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); search(); } });
   const mName = h('input', { type: 'text', id: 'mname', placeholder: 'Place name', maxlength: 120 });
@@ -1122,7 +1148,7 @@ routes['scan-questions'] = () => {
     h('p', { class: 'muted' }, 'Skip anything you’re unsure about.'),
     h('div', {},
       sliderQ({ prompt: 'How thermally comfortable are you?', left: 'Uncomfortable', right: 'Comfortable', value: d.thermal, optional: true, onChange: v => setDraft({ thermal: v }) }),
-      choiceQ({ prompt: 'How crowded does this place feel?', scale: true, ends: ['1 Crowded', 'Uncrowded 7'],
+      choiceQ({ prompt: 'How crowded does this place feel?', scale: true, ends: ['1 Uncrowded', 'Crowded 7'],
         options: [1, 2, 3, 4, 5, 6, 7].map(n => ({ label: String(n), value: n })), value: d.social, onChange: v => setDraft({ social: v }) }),
       smellQ, seatQ,
       choiceQ({ prompt: 'Can you readily see outside a window from where you are?',
@@ -1168,7 +1194,7 @@ routes.result = ({ id }) => {
     sound: isNum(s.sound_dba) ? `${Math.round(s.sound_dba)} dBA, ${soundTier(s.sound_dba)} (estimate)` : 'Not measured',
     light: s.light_tier ? `${s.light_tier} (estimate)${s.light_tier === 'Dark' ? ', not scored' : ''}` : 'Not measured',
     thermal: isNum(s.thermal) ? `${s.thermal} of 100` : 'Skipped',
-    social: isNum(s.social) ? `${s.social} of 7 (1 crowded, 7 uncrowded)` : 'Skipped',
+    social: isNum(s.social) ? `${s.social} of 7 (1 uncrowded, 7 crowded)` : 'Skipped',
     smell: s.smell_none ? 'No noticeable smell, not scored' : isNum(s.smell) ? `${s.smell} of 100` : 'Skipped',
     seat: s.seat === 'na' ? 'No seating, not scored' : isNum(s.seat) ? `${s.seat} of 10` : 'Skipped',
     nature: windowText,
@@ -1330,23 +1356,66 @@ routes.settings = () => {
       h('label', { class: 'muted small', for: 'scity' }, 'Used to find places when you search by name.'), city,
       h('button', { type: 'button', class: 'btn quiet', onclick: () => { state.city = city.value.trim(); store.set('city', state.city); toast('City saved'); } }, 'Save city')),
     h('div', { class: 'panel stack' }, h('h3', {}, 'Recovery code'),
-      h('p', { class: 'muted small' }, 'Optional. Use this code to bring your history to a new phone. Keep it private: anyone with it can see your timeline.'),
+      h('p', { class: 'muted small' }, 'Your history lives on this phone, so clearing your browser data or switching phones can lose it; your scans still count toward shared place data. This optional code brings your history to a new phone. Keep it private: anyone with it can see your timeline.'),
       codeShown,
       state.userId && navigator.clipboard && h('button', { type: 'button', class: 'btn quiet', onclick: () => navigator.clipboard.writeText(state.userId).then(() => toast('Code copied'), () => toast('Copying didn’t work. Write the code down instead.')) }, 'Copy code'),
       h('div', {}, h('label', { class: 'field', for: 'rcode' }, 'Restore history with a code'), codeIn),
       h('button', { type: 'button', class: 'btn quiet', onclick: restore }, 'Restore history'), msg),
     h('div', { class: 'panel stack' }, h('h3', {}, 'Privacy'),
-      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('privacy') }, 'Read how your information is handled'),
+      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('policy') }, 'Read the privacy policy'),
       h('div', {}, h('button', { type: 'button', class: 'btn danger', onclick: removeAll }, 'Delete all my data'))),
-    h('p', { class: 'muted small' }, `Version ${CONFIG.APP_VERSION}${api.enabled() ? '' : ', demo mode'}`)));
+    h('p', { class: 'muted small' }, `Version ${CONFIG.APP_VERSION}${api.enabled() ? '' : ', demo mode'}`),
+    h('p', { class: 'muted small' }, '© 2026 Meredith Banasiak LLC')));
 };
-routes.privacy = () => mount('settings', h('section', { class: 'stack' }, h('h1', {}, 'Privacy'), privacyText(),
-  h('button', { type: 'button', class: 'btn quiet wide', onclick: () => go('settings') }, 'Back to settings')));
+
+/* ---------------- Full privacy policy ---------------- */
+const POLICY_EFFECTIVE = 'November 13, 2026';
+routes.policy = () => {
+  const sec = (title, ...paras) => h('div', {}, h('h2', {}, title), paras.map(t => h('p', {}, t)));
+  const back = () => { if (history.length > 1) history.back(); else go('home', {}, true); };
+  mount(state.consented ? 'settings' : null, h('section', { class: 'stack' },
+    h('h1', {}, 'Privacy policy'),
+    h('p', { class: 'muted' }, `appmospherics, operated by Meredith Banasiak LLC. Effective ${POLICY_EFFECTIVE}.`),
+    h('p', {}, 'appmospherics measures the places you spend time, such as their sound, light, crowding and other conditions, and helps you learn which environments help you feel your best. This page explains what the app collects, what it does with it, and what it doesn’t do.'),
+    sec('What we collect',
+      'When you save a scan, the app saves: the place you chose; the date, time, day of the week and hour of the scan; the readings and ratings you measure or enter (overall comfort, sound level, light level, thermal comfort, social load, smell, seat comfort, and window and nature view, plus CO₂ and Garmin stress if you add them); the score and color the app calculates; and the app version used.',
+      'For a public place, we save the venue’s name, type and city, and for places found on OpenStreetMap, the venue’s own public map location. For a private place, such as home, we save only the type of place, with no name or location.',
+      'Each scan is linked to a random code created for your device. It doesn’t contain your name, email or contact details. If you change your What matters settings, they are also saved with your code so they can be restored.',
+      'We don’t ask for your name, email address, phone number or a login.'),
+    sec('Location',
+      'The app never tracks your location in the background. If you tap “Suggest places near me,” your phone’s location is sent once to OpenStreetMap’s map service to find nearby places. It is not saved, and it is never sent to us. Searching by name sends the words you type and your city to OpenStreetMap.'),
+    sec('Microphone and camera',
+      'During a room reading, the app uses your microphone and camera for a few seconds to calculate a sound level and a light level. That processing happens on your device. No audio, photos or video are recorded, saved or sent anywhere. Only the resulting numbers are saved, and only if you save the scan.'),
+    sec('Stored on your device',
+      'Your timeline, your code, your city, your What matters settings and any unfinished scan are kept in your browser’s storage on your device. Clearing your browser data removes them from the device.'),
+    sec('Who can see what',
+      'Your timeline is visible only to you, or to anyone you give your code to. Other people using appmospherics may see combined information about public places: the place’s name and type, the number of scans, average scores and colors, and the day of the week and hour of scans. They never see dates, your code or anything about private places.'),
+    sec('How we use and share the data',
+      'We use scans to show scores, to improve how scores are calculated, and for research on how built environments affect comfort and wellbeing. We may share or license combined, place-level information (readings and scores about places, not information about you) with other organizations, such as directories, travel and accessibility services, or research partners. We may publish research findings using combined data. We never share individual timelines, we don’t sell personal information, and we don’t use the data for advertising.'),
+    sec('Service providers',
+      'Scan data is stored in a private Google Sheet that only we can open, using Google Apps Script. The app is hosted by GitHub Pages, and its fonts are loaded from Google Fonts. Place search uses OpenStreetMap services. Like most web services, these providers may keep standard technical logs such as IP addresses, under their own privacy and security terms.'),
+    sec('Keeping and removing data',
+      'We keep scans for as long as the app operates, because the value of the data comes from comparing places over time. We may remove entries that look like spam or contain inappropriate content.',
+      'You can delete all of your scans and settings at any time in Settings, using Delete all my data. This removes them from our records and from your device. Shared place summaries are rebuilt without your scans.'),
+    sec('Age',
+      'appmospherics is for people 18 and older. We don’t knowingly collect information from anyone younger.'),
+    sec('Security',
+      'Our records are kept in a private spreadsheet. The app only accepts specific requests, codes are long and random, repeated code lookups are limited, and entries are checked before they are saved. No system is perfectly secure, so please don’t enter information you wouldn’t want others to see, such as your name in a place name.'),
+    sec('Using appmospherics',
+      'appmospherics is an experimental research tool provided as is, without warranties of any kind. Scores, colors and readings are estimates meant to help you notice patterns. They are not safety, health or accessibility certifications, and they are not medical or professional advice. Use your own judgment about where you go and how long you stay. To the extent allowed by law, Meredith Banasiak LLC is not liable for decisions made or harm arising from use of the app.'),
+    sec('Changes',
+      'If we change this policy, we’ll update the effective date above.'),
+    sec('Contact',
+      'Questions or requests about your data: appmospherics@gmail.com.'),
+    h('button', { type: 'button', class: 'btn quiet wide', onclick: back }, 'Back')));
+};
+
 
 /* =====================================================================
    START
    ===================================================================== */
 $tabbar.querySelectorAll('button').forEach(b => b.addEventListener('click', () => go(b.dataset.tab)));
+document.getElementById('policyLink').addEventListener('click', () => go('policy'));
 document.getElementById('modeNote').textContent = api.enabled() ? '' : 'Demo mode';
 window.addEventListener('online', syncPending);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncPending(); });
