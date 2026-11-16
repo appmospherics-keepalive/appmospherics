@@ -22,6 +22,10 @@
   --bg: #EEF2F0; --surface: #FFFFFF; --ink: #1D2B3A; --muted: #55666F; --line: #D3DCD8;
   --accent: #1F7A74; --accent-ink: #FFFFFF; --accent-soft: #D9ECE9;
   --green: #2E8B57; --amber: #F2B705; --red: #C0412E; --none: #8A989E;
+  /* Patterns: Good match carries the color; the other quadrants are muted neutrals, never the stoplight hues */
+  --grid: #E3E9E6; --band: rgba(31,122,116,0.18); --flag: #4B5BB3;
+  --q-match: #1F7A74; --q-hidden: #6F86A3; --q-despite: #A88A5E; --q-avoid: #9C948C;
+  --q-match-tint: rgba(31,122,116,0.13); --q-hidden-tint: rgba(111,134,163,0.08); --q-despite-tint: rgba(168,138,94,0.08); --q-avoid-tint: rgba(156,148,140,0.07);
   --display: "Bricolage Grotesque", "Atkinson Hyperlegible", system-ui, sans-serif;
   --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme: light;
@@ -34,6 +38,9 @@
     --bg: #111A22; --surface: #18242E; --ink: #E6ECEA; --muted: #9AAAB0; --line: #2B3A45;
     --accent: #4FB3AA; --accent-ink: #0E1A20; --accent-soft: #1E3A3B;
     --green: #4CB97A; --amber: #F5C542; --red: #E46A55; --none: #71808A;
+    --grid: #22303A; --band: rgba(79,179,170,0.25); --flag: #8C9BF0;
+    --q-match: #4FB3AA; --q-hidden: #8BA0BC; --q-despite: #C2A57A; --q-avoid: #8E877F;
+    --q-match-tint: rgba(79,179,170,0.16); --q-hidden-tint: rgba(139,160,188,0.09); --q-despite-tint: rgba(194,165,122,0.09); --q-avoid-tint: rgba(142,135,127,0.08);
     color-scheme: dark;
   }
 }
@@ -41,6 +48,9 @@
   --bg: #111A22; --surface: #18242E; --ink: #E6ECEA; --muted: #9AAAB0; --line: #2B3A45;
   --accent: #4FB3AA; --accent-ink: #0E1A20; --accent-soft: #1E3A3B;
   --green: #4CB97A; --amber: #F5C542; --red: #E46A55; --none: #71808A;
+  --grid: #22303A; --band: rgba(79,179,170,0.25); --flag: #8C9BF0;
+  --q-match: #4FB3AA; --q-hidden: #8BA0BC; --q-despite: #C2A57A; --q-avoid: #8E877F;
+  --q-match-tint: rgba(79,179,170,0.16); --q-hidden-tint: rgba(139,160,188,0.09); --q-despite-tint: rgba(194,165,122,0.09); --q-avoid-tint: rgba(142,135,127,0.08);
   color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -189,6 +199,44 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
 .attrib { font-size: 12px; color: var(--muted); text-align: center; margin: 28px auto 0; }
 .attrib a { color: inherit; }
 
+/* Patterns */
+.fitmap svg { width: 100%; height: auto; display: block; overflow: visible; }
+.fitmap .tick, .fitmap .qlabel { font-family: var(--body); fill: var(--muted); }
+.fitmap .qlabel { font-size: 11px; font-weight: 700; }
+.fitmap .qtag { font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 0.09em; }
+.fitmap .tick { font-size: 11px; font-variant-numeric: tabular-nums; }
+.fitmap .axtitle { font-family: var(--body); font-size: 12px; fill: var(--ink); }
+.fitmap .gridline { stroke: var(--grid); stroke-width: 1; }
+.fitmap .midline { stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 4; }
+.fitmap .pt { stroke: var(--surface); stroke-width: 2; cursor: pointer; }
+.fitmap .pt.sel { stroke: var(--ink); stroke-width: 2.5; }
+.fitlegend { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; font-size: 14px; }
+.fitlegend > div { display: flex; gap: 8px; align-items: flex-start; min-width: 0; }
+.fitlegend .sw { width: 12px; height: 12px; border-radius: 50%; flex: none; margin-top: 4px; }
+.fitlegend .ltag { display: block; font-family: var(--display); font-size: 12px; font-weight: 700; letter-spacing: 0.09em; color: var(--q-match); }
+.fitdetail { border-top: 1px solid var(--line); padding-top: 12px; font-size: 15px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.fitdetail strong { font-family: var(--display); font-size: 17px; }
+.bars { display: flex; flex-direction: column; gap: 12px; }
+.brow { display: grid; grid-template-columns: 112px 1fr; gap: 4px 12px; align-items: center; }
+.brow .bname { font-weight: 700; font-size: 15px; }
+.brow .btrack { height: 12px; background: var(--grid); border-radius: 999px; overflow: hidden; }
+.brow .bfill { height: 100%; background: var(--accent); border-radius: 999px; }
+.brow .bnote { grid-column: 2; font-size: 13px; color: var(--muted); }
+.brow.thin .bname { color: var(--muted); font-weight: 400; }
+.brow .lane { position: relative; height: 22px; }
+.brow .lbase { position: absolute; left: 0; right: 0; top: 10px; height: 2px; background: var(--grid); border-radius: 2px; }
+.brow .lenv { position: absolute; top: 4px; height: 14px; background: var(--band); border-radius: 999px; }
+.brow .ldot { position: absolute; top: 4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--ink); border: 2px solid var(--surface); }
+.brow .ldot.out { background: var(--flag); }
+.brow .bnote.out { color: var(--flag); font-weight: 700; }
+.keyline { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.keyline span { display: inline-flex; gap: 6px; align-items: center; }
+.k-band { width: 22px; height: 10px; border-radius: 999px; background: var(--band); display: inline-block; }
+.k-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ink); display: inline-block; }
+.lede { font-size: 18px; }
+.lede strong { font-family: var(--display); }
+@media (max-width: 380px) { .brow { grid-template-columns: 92px 1fr; } .fitlegend { grid-template-columns: 1fr; } }
+
 @media (prefers-reduced-motion: reduce) { .ring .progress, .ring .core { transition: none; } }
 </style>
 </head>
@@ -221,7 +269,7 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
    ===================================================================== */
 // === CONFIG START
 const CONFIG = {
-  APP_VERSION: '2.0.0-alpha.5',
+  APP_VERSION: '2.0.0-alpha.10',
 
   // Paste your Google Apps Script web app URL here (see the setup guide).
   // Leave empty to run in demo mode: scans are saved on this phone only.
@@ -230,14 +278,26 @@ const CONFIG = {
   // Your email, sent with OpenStreetMap searches as their usage policy asks.
   CONTACT_EMAIL: 'appmospherics@gmail.com',
 
-  // Sound: WHO Guidelines for Community Noise (1999) annoyance values; NIOSH 85 dBA hazard.
+  // Sound: WELL Building Standard v2, Feature S02 Maximum Noise Levels, by kind of place.
+  // Good = at or below WELL's average-level (Leq) limit; Caution = up to WELL's maximum-level (Lmax) limit;
+  // Poor = above that. NIOSH 85 dBA is the automatic red everywhere.
   SOUND: {
     CAL_OFFSET_DB: 110,      // Calibrate: meter dBA minus raw dBFS (see the setup guide)
     SAMPLE_SECONDS: 5,
     WARMUP_MS: 400,          // ignore the microphone's first moments
-    GOOD_MAX: 50,            // Good: 50 dBA and below
-    CAUTION_MAX: 55,         // Caution: 51–55 dBA
-    HAZARD_MIN: 85           // Auto-fail: 85 dBA and above. Poor: 56–84 dBA
+    CATEGORIES: {
+      1: { label: 'learning and speaking spaces', GOOD_MAX: 35, CAUTION_MAX: 45 },
+      2: { label: 'enclosed spaces for concentration and rest', GOOD_MAX: 40, CAUTION_MAX: 50 },
+      3: { label: 'open, dining and public spaces', GOOD_MAX: 45, CAUTION_MAX: 55 }
+    },
+    // Kind of place -> WELL category. Anything not listed uses category 3.
+    PLACE_CATEGORY: {
+      'School': 1,
+      'Home': 2, 'Someone else’s home': 2, 'Other private place': 2, 'Library': 2, 'Office or workplace': 2,
+      'Healthcare': 2, 'Place of worship': 2
+    },
+    DEFAULT_CATEGORY: 3,
+    HAZARD_MIN: 85           // NIOSH: automatic red at 85 dBA and above, in every kind of place
   },
 
   // Light: camera estimate shown as tiers. Boundaries: Dark below 10 lux,
@@ -270,6 +330,9 @@ const CONFIG = {
   // Low confidence when fewer than this many of the 9 scored measures are answered.
   LOW_CONFIDENCE_MIN_ANSWERED: 5,
 
+  // Patterns on the Timeline. The fit map works from the first scan; the other views wait for enough data.
+  PATTERNS: { MIN_SCANS: 10, MIN_PER_MEASURE: 10, COMFORT_MIN: 65, MIN_COMFORTABLE: 4, SPLIT: 50 },
+
   NEARBY_RADIUS_M: 250,              // widened automatically when the phone's location is imprecise, up to 600 m
   DEFAULT_WEIGHT: 2                  // 0 = off, 3 = matters a lot
 };
@@ -291,23 +354,30 @@ const METRICS = [
   { key: 'stress', label: 'Stress (Garmin)' }
 ];
 const isNum = v => typeof v === 'number' && isFinite(v);
+// ASHRAE 7-point thermal sensation scale. Recorded with each scan, never scored.
+const SENSATION = [[-3, 'Cold'], [-2, 'Cool'], [-1, 'Slightly cool'], [0, 'Neutral'], [1, 'Slightly warm'], [2, 'Warm'], [3, 'Hot']];
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-function soundTier(db) {
+// The WELL sound category for a scan, from the kind of place.
+function soundCategory(s) {
+  const kind = (s && s.place && s.place.type) || (s && s.private_type) || '';
+  return CONFIG.SOUND.PLACE_CATEGORY[kind] || CONFIG.SOUND.DEFAULT_CATEGORY;
+}
+function soundTier(db, category) {
   if (!isNum(db)) return null;
-  const S = CONFIG.SOUND;
+  const S = CONFIG.SOUND, c = S.CATEGORIES[category || S.DEFAULT_CATEGORY];
   if (db >= S.HAZARD_MIN) return 'Fail';
-  if (db <= S.GOOD_MAX) return 'Good';
-  if (db <= S.CAUTION_MAX) return 'Caution';
+  if (db <= c.GOOD_MAX) return 'Good';
+  if (db <= c.CAUTION_MAX) return 'Caution';
   return 'Poor';
 }
 // Good = 100. Caution slides 66 to 34 (yellow). Poor slides 33 to 0 (red).
-function soundPoints(db) {
+function soundPoints(db, category) {
   if (!isNum(db)) return null;
-  const S = CONFIG.SOUND;
-  if (db <= S.GOOD_MAX) return 100;
-  if (db <= S.CAUTION_MAX) return 66 - (db - S.GOOD_MAX) / (S.CAUTION_MAX - S.GOOD_MAX) * 32;
-  if (db < S.HAZARD_MIN) return 33 - (db - S.CAUTION_MAX) / (S.HAZARD_MIN - S.CAUTION_MAX) * 33;
+  const S = CONFIG.SOUND, c = S.CATEGORIES[category || S.DEFAULT_CATEGORY];
+  if (db <= c.GOOD_MAX) return 100;
+  if (db <= c.CAUTION_MAX) return 66 - (db - c.GOOD_MAX) / (c.CAUTION_MAX - c.GOOD_MAX) * 32;
+  if (db < S.HAZARD_MIN) return 33 - (db - c.CAUTION_MAX) / (S.HAZARD_MIN - c.CAUTION_MAX) * 33;
   return 0;
 }
 function lightTier(lux) {
@@ -328,7 +398,7 @@ function co2Tier(ppm) {
 function metricResults(s) {
   const pts = (answered, p) => ({ answered, points: isNum(p) ? Math.round(clamp(p, 0, 100)) : null });
   const r = {};
-  r.sound = pts(isNum(s.sound_dba), soundPoints(s.sound_dba));
+  r.sound = pts(isNum(s.sound_dba), soundPoints(s.sound_dba, soundCategory(s)));
   const lp = s.light_tier ? CONFIG.LIGHT.POINTS[s.light_tier] : null;
   r.light = pts(!!s.light_tier, lp);
   r.thermal = pts(isNum(s.thermal), s.thermal);
@@ -409,6 +479,37 @@ function localISO(d) {
   const pad = n => String(Math.floor(Math.abs(n))).padStart(2, '0');
   const off = -d.getTimezoneOffset();
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${off >= 0 ? '+' : '-'}${pad(off / 60)}:${pad(off % 60)}`;
+}
+// Patterns: correlation, comfortable ranges and fit-map quadrants, all worked out on the device from your own scans.
+function pearson(xs, ys) {
+  const n = xs.length; if (n < 3) return null;
+  const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) { const dx = xs[i] - mx, dy = ys[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
+  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
+}
+const linkStrength = r => !isNum(r) ? null : Math.abs(r) >= 0.5 ? 'strong' : Math.abs(r) >= 0.3 ? 'moderate' : Math.abs(r) >= 0.15 ? 'some' : 'little';
+function quantile(a, q) { const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); }
+const fitQuadrant = (score, comfort) => score >= CONFIG.PATTERNS.SPLIT ? (comfort >= CONFIG.PATTERNS.SPLIT ? 'match' : 'hidden') : (comfort >= CONFIG.PATTERNS.SPLIT ? 'despite' : 'avoid');
+// One point per scan that has both a comfort rating and a place score.
+function patternPoints(scans) {
+  return scans.filter(s => isNum(s.overall_comfort)).map(s => {
+    const sc = scoreScan(s, null);
+    return sc.placeScore == null ? null : { scan: s, score: sc.placeScore, comfort: s.overall_comfort, results: sc.results, q: fitQuadrant(sc.placeScore, s.overall_comfort) };
+  }).filter(Boolean);
+}
+// How closely each measure moves with comfort. r is null until a measure has enough scans.
+function measureLinks(points) {
+  return METRICS.map(m => {
+    const pts = points.filter(p => p.results[m.key].points != null);
+    const r = pts.length >= CONFIG.PATTERNS.MIN_PER_MEASURE ? pearson(pts.map(p => p.results[m.key].points), pts.map(p => p.comfort)) : null;
+    return { key: m.key, label: m.label, n: pts.length, r };
+  });
+}
+// The range of each measure (10th to 90th percentile) across scans where you felt comfortable.
+function comfortRange(points, key) {
+  const v = points.filter(p => p.comfort >= CONFIG.PATTERNS.COMFORT_MIN && p.results[key].points != null).map(p => p.results[key].points);
+  return v.length >= CONFIG.PATTERNS.MIN_COMFORTABLE ? [quantile(v, 0.1), quantile(v, 0.9)] : null;
 }
 // === SCORING END
 
@@ -899,11 +1000,11 @@ function onboard() {
       h('h1', {}, 'Before you start'),
       h('p', {}, 'appmospherics helps you discover which environments help you feel your best.'),
       h('div', { class: 'panel' }, h('ul', { class: 'keypoints' },
-        h('li', {}, h('strong', {}, 'Nothing identifies you. '), 'No name, email or login. Your scans are linked to a random code on this phone.'),
-        h('li', {}, h('strong', {}, 'Only numbers are kept. '), 'Room readings use the microphone and camera for a few seconds; no audio or images are saved.'),
-        h('li', {}, h('strong', {}, 'Your location isn’t tracked. '), 'It’s used only if you ask for nearby places, and never saved.'),
-        h('li', {}, h('strong', {}, 'Your timeline is private. '), 'Your scans also count, without your code, toward shared place information and research.'),
-        h('li', {}, h('strong', {}, 'You can delete everything '), 'anytime in Settings.'))),
+        h('li', {}, h('strong', {}, 'No name, email or login. '), 'Your scans are linked to a random code, not to you.'),
+        h('li', {}, h('strong', {}, 'No audio or images are saved. '), 'Room readings use the microphone and camera for a few seconds and keep only the sound and light levels.'),
+        h('li', {}, h('strong', {}, 'We save the place you choose, not where your phone is. '), 'Your phone’s location is used only if you ask for nearby places. It goes to the map service to find them, and we never save it.'),
+        h('li', {}, h('strong', {}, 'Other people can’t see your timeline. '), 'We can see scans in our records, linked only to your random code. Anything shared or published combines many people’s scans.'),
+        h('li', {}, h('strong', {}, 'You can delete your scans '), 'anytime in Settings.'))),
       h('p', { class: 'muted small' }, 'appmospherics is not a medical tool, and its readings are estimates. You must be 18 or older to use the app.'),
       h('button', { type: 'button', class: 'linkbtn', onclick: () => go('policy') }, 'Read the full privacy policy'),
       h('button', { type: 'button', class: 'btn wide', onclick: () => { state.consented = true; store.set('consented', true); onboard(); } }, 'I agree')));
@@ -962,7 +1063,7 @@ routes.home = () => {
 /* ---------------- Scan ---------------- */
 function emptyDraft() {
   return { place: null, private_type: null, overall_comfort: null, sound_dba: null, light_lux_est: null, light_tier: null, light_method: null,
-    thermal: null, social: null, smell: null, smell_none: false, seat: null, window: null, nature: null, co2: null, stress: null };
+    thermal: null, thermal_sensation: null, social: null, smell: null, smell_none: false, seat: null, window: null, nature: null, co2: null, stress: null };
 }
 function beginScan(resume) {
   ensureUser();
@@ -1050,7 +1151,7 @@ routes['scan-reading'] = () => {
     const cell = (k, v, note) => h('div', { class: 'cell' }, h('div', { class: 'k' }, k), h('div', { class: 'v' }, v), h('div', { class: 'note' }, note));
     fill(out,
       h('div', { class: 'readout' },
-        cell('Sound', isNum(d.sound_dba) ? `${Math.round(d.sound_dba)} dBA` : 'No reading', isNum(d.sound_dba) ? `${soundTier(d.sound_dba)}, estimated` : (res && res.soundError ? sensorMessage(res.soundError, 'Microphone') : '')),
+        cell('Sound', isNum(d.sound_dba) ? `${Math.round(d.sound_dba)} dBA` : 'No reading', isNum(d.sound_dba) ? `${soundTier(d.sound_dba, soundCategory(d))} for this kind of place, estimated` : (res && res.soundError ? sensorMessage(res.soundError, 'Microphone') : '')),
         cell('Light', d.light_tier || 'No reading', d.light_tier ? 'Estimated by the camera' : (res && res.lightError ? sensorMessage(res.lightError, 'Camera') : ''))),
       res && res.clipped && h('p', { class: 'notice small' }, 'The sound was loud enough to overload this phone’s microphone, so the real level may be higher than shown.'),
       res && (res.soundError || res.lightError) && h('p', { class: 'muted small' }, 'To include a missing reading, allow the microphone and camera for this site in your browser settings, then read again. You can also continue without it.'),
@@ -1148,6 +1249,8 @@ routes['scan-questions'] = () => {
     h('p', { class: 'muted' }, 'Skip anything you’re unsure about.'),
     h('div', {},
       sliderQ({ prompt: 'How thermally comfortable are you?', left: 'Uncomfortable', right: 'Comfortable', value: d.thermal, optional: true, onChange: v => setDraft({ thermal: v }) }),
+      choiceQ({ prompt: 'How warm or cold does it feel?', hint: 'Not part of the score. It helps explain your comfort rating.',
+        options: SENSATION.map(([value, label]) => ({ value, label })), value: isNum(d.thermal_sensation) ? d.thermal_sensation : null, onChange: v => setDraft({ thermal_sensation: v }) }),
       choiceQ({ prompt: 'How crowded does this place feel?', scale: true, ends: ['1 Uncrowded', 'Crowded 7'],
         options: [1, 2, 3, 4, 5, 6, 7].map(n => ({ label: String(n), value: n })), value: d.social, onChange: v => setDraft({ social: v }) }),
       smellQ, seatQ,
@@ -1168,7 +1271,7 @@ function saveScan() {
     app_version: CONFIG.APP_VERSION, synced: false
   });
   const sc = scoreScan(s, null); // the stored score always uses equal weights
-  Object.assign(s, { sound_tier: soundTier(s.sound_dba), score: sc.placeScore, stoplight: sc.placeLight, hazard: sc.hazards.length > 0, low_confidence: sc.lowConfidence, answered_count: sc.answered });
+  Object.assign(s, { sound_category: soundCategory(s), sound_tier: soundTier(s.sound_dba, soundCategory(s)), score: sc.placeScore, stoplight: sc.placeLight, hazard: sc.hazards.length > 0, low_confidence: sc.lowConfidence, answered_count: sc.answered });
   state.scans.push(s); saveScans();
   state.draft = null; saveDraft();
   go('result', { id: s.scan_id }, true);
@@ -1191,9 +1294,9 @@ routes.result = ({ id }) => {
   const windowText = s.window == null ? 'Skipped' : s.window === 'no' ? 'No window view'
     : (s.window === 'outdoors' ? 'Outdoors' : 'Window view') + (s.nature === 'yes' ? ', with nature in view' : s.nature === 'no' ? ', no nature in view' : '');
   const reading = {
-    sound: isNum(s.sound_dba) ? `${Math.round(s.sound_dba)} dBA, ${soundTier(s.sound_dba)} (estimate)` : 'Not measured',
+    sound: isNum(s.sound_dba) ? `${Math.round(s.sound_dba)} dBA (estimate), ${soundTier(s.sound_dba, soundCategory(s)).toLowerCase()} for ${CONFIG.SOUND.CATEGORIES[soundCategory(s)].label}` : 'Not measured',
     light: s.light_tier ? `${s.light_tier} (estimate)${s.light_tier === 'Dark' ? ', not scored' : ''}` : 'Not measured',
-    thermal: isNum(s.thermal) ? `${s.thermal} of 100` : 'Skipped',
+    thermal: [isNum(s.thermal) ? `${s.thermal} of 100` : 'Skipped', isNum(s.thermal_sensation) ? `felt ${SENSATION.find(x => x[0] === s.thermal_sensation)[1].toLowerCase()} (not scored)` : null].filter(Boolean).join('; '),
     social: isNum(s.social) ? `${s.social} of 7 (1 uncrowded, 7 crowded)` : 'Skipped',
     smell: s.smell_none ? 'No noticeable smell, not scored' : isNum(s.smell) ? `${s.smell} of 100` : 'Skipped',
     seat: s.seat === 'na' ? 'No seating, not scored' : isNum(s.seat) ? `${s.seat} of 10` : 'Skipped',
@@ -1215,7 +1318,7 @@ routes.result = ({ id }) => {
       sc.placeScore != null && sc.lowConfidence && h('p', { class: 'notice' }, h('strong', {}, 'Low confidence. '), `Only ${sc.answered} of ${METRICS.length} measures were answered.`),
       api.enabled() && !s.synced && h('p', { class: 'notice small' }, 'Saved on this phone. It will sync when you’re online.'),
       isNum(s.overall_comfort) && h('p', {}, `You rated your overall comfort ${s.overall_comfort} of 100.`)),
-    h('div', { class: 'block-gap' }, h('h2', {}, 'Breakdown'),
+    h('div', { class: 'block-gap' }, h('div', { class: 'row spread' }, h('h2', { style: 'margin:0' }, 'Breakdown'), h('button', { type: 'button', class: 'linkbtn small', onclick: () => go('measures') }, 'How these are measured')),
       h('table', { class: 'breakdown' }, h('tbody', {}, METRICS.map(m => h('tr', {},
         h('td', {}, h('strong', {}, m.label), h('br'), h('span', { class: 'muted small' }, reading[m.key])),
         h('td', {}, res[m.key].points == null ? '–' : res[m.key].points)))))),
@@ -1238,13 +1341,177 @@ async function loadPlaceSummary(s) {
 }
 
 /* ---------------- Timeline ---------------- */
-const tl = { mode: 'week', anchor: new Date() };
-routes.timeline = () => {
+const tl = { view: 'patterns', mode: 'week', anchor: new Date(), place: null, selected: null };
+
+/* ---------------- Patterns ---------------- */
+const FIT_Q = {
+  match:   { tag: 'GOOD MATCH', label: 'Measured well, felt good', lines: ['Measured well,', 'felt good'], color: 'var(--q-match)', tint: 'var(--q-match-tint)' },
+  hidden:  { label: 'Measured well, felt off', lines: ['Measured well,', 'felt off'], color: 'var(--q-hidden)', tint: 'var(--q-hidden-tint)' },
+  despite: { label: 'Measured poorly, felt good', lines: ['Measured poorly,', 'felt good'], color: 'var(--q-despite)', tint: 'var(--q-despite-tint)' },
+  avoid:   { label: 'Measured poorly, felt off', lines: ['Measured poorly,', 'felt off'], color: 'var(--q-avoid)', tint: 'var(--q-avoid-tint)' }
+};
+const BETTER = { sound: 'quieter', light: 'brighter', thermal: 'more thermally comfortable', social: 'less crowded', smell: 'more pleasant smell', seat: 'more comfortable seat', nature: 'more nature in view', co2: 'fresher air', stress: 'lower stress' };
+const listText = a => a.length === 1 ? a[0] : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+function svgNode(tag, attrs, text) {
+  const n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in attrs) if (attrs[k] != null) n.setAttribute(k, attrs[k]);
+  if (text != null) n.textContent = text;
+  return n;
+}
+function notYet(have) {
+  const need = CONFIG.PATTERNS.MIN_SCANS;
+  return h('p', { class: 'muted' }, `This appears after ${need} scans with a comfort rating. You have ${have}, so ${need - have} more to go.`);
+}
+
+function fitMapPanel(points) {
+  if (!points.length) {
+    return h('div', { class: 'panel stack' },
+      h('p', {}, 'Your fit map starts with your first scan. Each scan with a comfort rating adds one dot: how the place measured, against how you felt there.'),
+      h('div', {}, h('button', { type: 'button', class: 'btn', onclick: () => beginScan() }, 'Start a scan')));
+  }
+  // Summary sentence, worked out from your own scans
+  let lede;
+  if (points.length >= 5) {
+    const r = pearson(points.map(p => p.score), points.map(p => p.comfort));
+    const word = { strong: 'closely', moderate: 'fairly closely', some: 'a little', little: 'only loosely' }[linkStrength(r)];
+    lede = word ? [document.createTextNode('Your comfort follows how places measure '), h('strong', {}, word), document.createTextNode('.')] : [document.createTextNode('Your comfort ratings have been very similar so far.')];
+  } else lede = [document.createTextNode(`After 5 scans, this will say how closely your comfort follows the measurements. You have ${points.length}.`)];
+  const places = q => [...new Set(points.filter(p => p.q === q).map(p => placeName(p.scan)))];
+  const hiddenAt = places('hidden'), despiteAt = places('despite');
+  if (hiddenAt.length) lede.push(document.createTextNode(` ${listText(hiddenAt)} measured well but felt off at least once, so something there may not be measured.`));
+  if (despiteAt.length) lede.push(document.createTextNode(` ${listText(despiteAt)} measured poorly but felt good.`));
+
+  // The chart
+  const L = 44, T = 10, W = 284, H = 252;
+  const x = v => L + v / 100 * W, y = v => T + (1 - v / 100) * H, S = CONFIG.PATTERNS.SPLIT;
+  const svg = svgNode('svg', { viewBox: '0 0 340 320', role: 'img', 'aria-label': `Fit map of ${plural(points.length, 'scan')}` });
+  [['despite', 0, S, S, 100 - S], ['match', S, S, 100 - S, 100 - S], ['avoid', 0, 0, S, S], ['hidden', S, 0, 100 - S, S]].forEach(([q, x0, y0, w, hh]) =>
+    svg.append(svgNode('rect', { x: x(x0), y: y(y0 + hh), width: w / 100 * W, height: hh / 100 * H, style: `fill:${FIT_Q[q].tint}` })));
+  for (const v of [0, 25, 75, 100]) {
+    svg.append(svgNode('line', { class: 'gridline', x1: x(v), x2: x(v), y1: T, y2: T + H }));
+    svg.append(svgNode('line', { class: 'gridline', x1: L, x2: L + W, y1: y(v), y2: y(v) }));
+  }
+  svg.append(svgNode('line', { class: 'midline', x1: x(S), x2: x(S), y1: T, y2: T + H }));
+  svg.append(svgNode('line', { class: 'midline', x1: L, x2: L + W, y1: y(S), y2: y(S) }));
+  const label = (q, tx, top, anchor) => {
+    const t = svgNode('text', { class: 'qlabel', x: tx, y: top, 'text-anchor': anchor, style: `fill:${FIT_Q[q].color}` });
+    const lines = FIT_Q[q].tag ? [FIT_Q[q].tag, ...FIT_Q[q].lines] : FIT_Q[q].lines;
+    lines.forEach((line, i) => t.append(svgNode('tspan', { x: tx, dy: i ? 13 : 0, class: FIT_Q[q].tag && i === 0 ? 'qtag' : null }, line)));
+    svg.append(t);
+  };
+  label('despite', x(2), y(96), 'start'); label('match', x(98), y(64), 'end');
+  label('avoid', x(2), y(46), 'start'); label('hidden', x(98), y(3) - 13, 'end');
+  for (const v of [0, 50, 100]) {
+    svg.append(svgNode('text', { class: 'tick', x: x(v), y: T + H + 16, 'text-anchor': v === 0 ? 'start' : v === 100 ? 'end' : 'middle' }, v));
+    svg.append(svgNode('text', { class: 'tick', x: L - 8, y: y(v) + 4, 'text-anchor': 'end' }, v));
+  }
+  svg.append(svgNode('text', { class: 'axtitle', x: L + W / 2, y: T + H + 36, 'text-anchor': 'middle' }, 'How the place measured (place score) →'));
+  svg.append(svgNode('text', { class: 'axtitle', x: -(T + H / 2), y: 14, transform: 'rotate(-90)', 'text-anchor': 'middle' }, 'How you felt (comfort) →'));
+
+  const detail = h('div', { class: 'fitdetail', 'aria-live': 'polite' });
+  const showDetail = p => {
+    const d = new Date(p.scan.timestamp_local);
+    fill(detail,
+      h('div', {}, h('strong', {}, placeName(p.scan)), ` ${fmtDay(d, { weekday: 'short', month: 'short', day: 'numeric' })}, ${fmtTime(d)}`),
+      h('div', {}, `Place score ${p.score}. You felt ${p.comfort} of 100. `, h('span', { class: 'muted' }, FIT_Q[p.q].label + '.')),
+      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('result', { id: p.scan.scan_id }) }, 'Open this scan'));
+  };
+  const sorted = points.slice().sort((a, b) => new Date(a.scan.timestamp_local) - new Date(b.scan.timestamp_local));
+  const dots = sorted.map(p => {
+    const r0 = p.q === 'match' ? 7.5 : 6;
+    const c = svgNode('circle', { class: 'pt', cx: x(p.score), cy: y(p.comfort), r: r0, style: `fill:${FIT_Q[p.q].color}`, tabindex: 0, role: 'button',
+      'aria-label': `${placeName(p.scan)}, ${fmtDay(new Date(p.scan.timestamp_local), { month: 'short', day: 'numeric' })}: place score ${p.score}, comfort ${p.comfort}, ${FIT_Q[p.q].label}` });
+    const pick = () => {
+      dots.forEach(o => { o.c.classList.remove('sel'); o.c.setAttribute('r', o.r0); });
+      c.classList.add('sel'); c.setAttribute('r', r0 + 2); tl.selected = p.scan.scan_id; showDetail(p);
+    };
+    c.addEventListener('click', pick);
+    c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    svg.append(c);
+    return { c, r0, p, pick };
+  });
+  (dots.find(o => o.p.scan.scan_id === tl.selected) || dots[dots.length - 1]).pick(); // open on the latest scan
+
+  const counts = {}; points.forEach(p => { counts[p.q] = (counts[p.q] || 0) + 1; });
+  const legend = h('div', { class: 'fitlegend' }, ['match', 'hidden', 'despite', 'avoid'].map(q => {
+    const sw = h('span', { class: 'sw', style: `background:${FIT_Q[q].color}` });
+    return h('div', {}, sw, h('span', {}, FIT_Q[q].tag && h('span', { class: 'ltag' }, FIT_Q[q].tag), h('strong', {}, FIT_Q[q].label), ` (${counts[q] || 0})`));
+  }));
+  return h('div', { class: 'panel stack fitmap' }, h('p', { class: 'lede' }, lede), svg, legend, detail);
+}
+
+function movesPanel(points) {
+  if (points.length < CONFIG.PATTERNS.MIN_SCANS) return h('div', { class: 'panel' }, notYet(points.length));
+  const rows = measureLinks(points).sort((a, b) => (b.r == null ? -1 : Math.abs(b.r)) - (a.r == null ? -1 : Math.abs(a.r)));
+  return h('div', { class: 'panel stack' },
+    h('div', { class: 'bars' }, rows.map(rw => {
+      const s = linkStrength(rw.r);
+      let note;
+      if (rw.r == null) note = `Not enough scans yet (${rw.n} of ${CONFIG.PATTERNS.MIN_PER_MEASURE})`;
+      else if (s === 'little') note = 'Little link to your comfort';
+      else note = rw.r > 0 ? `${cap(s)}: ${BETTER[rw.key]} → more comfortable` : `${cap(s)}, in the opposite direction from expected`;
+      return h('div', { class: 'brow' + (rw.r == null || s === 'little' ? ' thin' : '') },
+        h('div', { class: 'bname' }, rw.label),
+        h('div', { class: 'btrack', role: 'img', 'aria-label': `${rw.label}: ${note}` }, h('div', { class: 'bfill', style: `width:${rw.r == null ? 0 : Math.max(3, Math.abs(rw.r) * 100)}%` })),
+        h('div', { class: 'bnote' }, note));
+    })),
+    h('p', { class: 'small muted' }, `Based on ${plural(points.length, 'scan')}. This shows which measures rise and fall with your comfort, not proof that one causes the other. It sharpens as you scan more.`));
+}
+
+function placeFitPanel(points) {
+  if (points.length < CONFIG.PATTERNS.MIN_SCANS) return h('div', { class: 'panel' }, notYet(points.length));
+  const visits = {};
+  points.forEach(p => { const n = placeName(p.scan); (visits[n] = visits[n] || []).push(p); });
+  const names = Object.keys(visits).sort((a, b) => visits[b].length - visits[a].length).slice(0, 10);
+  if (!names.includes(tl.place)) tl.place = names[0];
+  const rowsBox = h('div', { class: 'bars' }), verdict = h('p', {});
+  const draw = name => {
+    const vs = visits[name], outside = [];
+    fill(rowsBox, METRICS.map(m => {
+      const v = vs.map(p => p.results[m.key].points).filter(x => x != null);
+      if (!v.length) return null;
+      const avg = Math.round(v.reduce((a, b) => a + b, 0) / v.length);
+      const env = comfortRange(points, m.key);
+      let note = 'Not enough comfortable scans yet to set your range', out = false;
+      const lane = h('div', { class: 'lane' }, h('div', { class: 'lbase' }));
+      if (env) {
+        lane.append(h('div', { class: 'lenv', style: `left:${env[0]}%;width:${Math.max(2, env[1] - env[0])}%` }));
+        out = avg < env[0] - 2 || avg > env[1] + 2;
+        note = out ? (avg < env[0] ? 'Below your comfortable range' : 'Above your comfortable range') : 'Within your comfortable range';
+        if (out) outside.push(m.label.replace(/^[A-Z](?=[a-z])/, c => c.toLowerCase()));
+      }
+      lane.append(h('div', { class: 'ldot' + (out ? ' out' : ''), style: `left:${avg}%` }));
+      lane.setAttribute('role', 'img'); lane.setAttribute('aria-label', `${m.label}: ${avg} points. ${note}.`);
+      return h('div', { class: 'brow' }, h('div', { class: 'bname' }, m.label), lane, h('div', { class: 'bnote' + (out ? ' out' : '') }, `${avg} points. ${note}`));
+    }));
+    const felt = Math.round(vs.reduce((a, p) => a + p.comfort, 0) / vs.length);
+    verdict.textContent = `${name}: ${plural(vs.length, 'visit')}, you felt ${felt} of 100 on average. ` +
+      (outside.length ? `Outside your comfortable range for ${listText(outside)}.` : 'Every measure with enough data sits within your comfortable range.');
+  };
+  const chips = names.map(n => h('button', { type: 'button', 'aria-pressed': String(n === tl.place), onclick: () => { tl.place = n; chips.forEach((b, i) => b.setAttribute('aria-pressed', String(names[i] === n))); draw(n); } }, n));
+  draw(tl.place);
+  return h('div', { class: 'panel stack' },
+    h('div', { class: 'seg', role: 'group', 'aria-label': 'Choose a place' }, chips),
+    verdict, rowsBox,
+    h('div', { class: 'keyline' }, h('span', {}, h('i', { class: 'k-band' }), 'Your comfortable range'), h('span', {}, h('i', { class: 'k-dot' }), 'This place, on average')));
+}
+
+function patternsView() {
+  const points = patternPoints(state.scans);
+  return [
+    h('div', { class: 'stack' }, h('h2', {}, 'Your fit map'), h('p', { class: 'muted' }, 'Each dot is one scan: how the place measured, against how you felt there.'), fitMapPanel(points)),
+    h('div', { class: 'stack block-gap' }, h('h2', {}, 'What moves you'), h('p', { class: 'muted' }, 'How closely each measure follows your comfort ratings.'), movesPanel(points)),
+    h('div', { class: 'stack block-gap' }, h('h2', {}, 'How a place fits you'), h('p', { class: 'muted' }, 'A place’s typical readings, set against the range where you’ve felt comfortable.'), placeFitPanel(points)),
+    h('p', { class: 'muted small' }, 'Worked out on this phone from your own scans. Only you can see these patterns.')
+  ];
+}
+
+/* ---------------- Calendar ---------------- */
+function calendarView(redraw) {
   const byDay = {};
   for (const s of state.scans) { const k = dateKey(new Date(s.timestamp_local)); (byDay[k] = byDay[k] || []).push(s); }
   Object.values(byDay).forEach(a => a.sort((x, y) => new Date(x.timestamp_local) - new Date(y.timestamp_local)));
   const a = new Date(tl.anchor.getFullYear(), tl.anchor.getMonth(), tl.anchor.getDate());
-  const redraw = () => routes.timeline();
   const openDay = d => { tl.mode = 'day'; tl.anchor = d; redraw(); };
   const shift = dir => { const d = new Date(a); if (tl.mode === 'day') d.setDate(d.getDate() + dir); else if (tl.mode === 'week') d.setDate(d.getDate() + 7 * dir); else d.setMonth(d.getMonth() + dir, 1); tl.anchor = d; redraw(); };
   const light = s => scoreScan(s, state.weights).yourLight;
@@ -1279,15 +1546,24 @@ routes.timeline = () => {
     }
     body = h('div', { class: 'cal' }, cells);
   }
-  mount('timeline', h('section', { class: 'stack' },
-    h('h1', {}, 'Your timeline'),
-    h('div', { class: 'tabs', role: 'group', 'aria-label': 'Timeline view' }, ['day', 'week', 'month'].map(m => h('button', { type: 'button', 'aria-pressed': String(tl.mode === m), onclick: () => { tl.mode = m; redraw(); } }, cap(m)))),
+  return [
+    h('div', { class: 'tabs', role: 'group', 'aria-label': 'Calendar range' }, ['day', 'week', 'month'].map(m => h('button', { type: 'button', 'aria-pressed': String(tl.mode === m), onclick: () => { tl.mode = m; redraw(); } }, cap(m)))),
     h('div', { class: 'row spread' },
       h('button', { type: 'button', class: 'btn quiet compact', 'aria-label': 'Previous ' + tl.mode, onclick: () => shift(-1) }, '‹'),
       h('h3', { style: 'margin:0;text-align:center;flex:1' }, title),
       h('button', { type: 'button', class: 'btn quiet compact', 'aria-label': 'Next ' + tl.mode, onclick: () => shift(1) }, '›')),
-    state.scans.length ? body : h('div', { class: 'panel stack' }, h('p', {}, 'No scans yet. Your first scan will appear here.'), h('button', { type: 'button', class: 'btn', onclick: () => beginScan() }, 'Start a scan')),
-    h('p', { class: 'muted small' }, 'Colors show your score, based on your What matters settings. Only you can see this timeline.')));
+    state.scans.length ? body : h('div', { class: 'panel stack' }, h('p', {}, 'No scans yet. Your first scan will appear here.'), h('div', {}, h('button', { type: 'button', class: 'btn', onclick: () => beginScan() }, 'Start a scan'))),
+    h('p', { class: 'muted small' }, 'Colors show your score, based on your What matters settings. Only you can see this timeline.')
+  ];
+}
+
+routes.timeline = () => {
+  const redraw = () => { const y = window.scrollY; routes.timeline(); window.scrollTo(0, y); };
+  mount('timeline', h('section', { class: 'stack' },
+    h('h1', {}, 'Your timeline'),
+    h('div', { class: 'tabs', role: 'group', 'aria-label': 'Timeline view' },
+      [['patterns', 'Patterns'], ['calendar', 'Calendar']].map(([v, label]) => h('button', { type: 'button', 'aria-pressed': String(tl.view === v), onclick: () => { tl.view = v; redraw(); } }, label))),
+    tl.view === 'patterns' ? patternsView() : calendarView(redraw)));
 };
 
 /* ---------------- What matters ---------------- */
@@ -1363,9 +1639,63 @@ routes.settings = () => {
       h('button', { type: 'button', class: 'btn quiet', onclick: restore }, 'Restore history'), msg),
     h('div', { class: 'panel stack' }, h('h3', {}, 'Privacy'),
       h('button', { type: 'button', class: 'linkbtn', onclick: () => go('policy') }, 'Read the privacy policy'),
+      h('div', {}, h('button', { type: 'button', class: 'linkbtn', onclick: () => go('measures') }, 'How the measures and scores work')),
       h('div', {}, h('button', { type: 'button', class: 'btn danger', onclick: removeAll }, 'Delete all my data'))),
     h('p', { class: 'muted small' }, `Version ${CONFIG.APP_VERSION}${api.enabled() ? '' : ', demo mode'}`),
     h('p', { class: 'muted small' }, '© 2026 Meredith Banasiak LLC')));
+};
+
+/* ---------------- About the measures ---------------- */
+routes.measures = () => {
+  const L = CONFIG.LIGHT.TIERS, S = CONFIG.SOUND, C = CONFIG.CO2, T = CONFIG.STOPLIGHT;
+  const item = (title, what, source) => h('div', { class: 'wrow' }, h('div', { class: 'name' }, title), h('p', {}, what), source && h('p', { class: 'muted small' }, source));
+  const back = () => { if (history.length > 1) history.back(); else go('settings', {}, true); };
+  mount('settings', h('section', { class: 'stack' },
+    h('h1', {}, 'How the measures work'),
+    h('p', {}, 'Each scan combines two phone readings with a few quick ratings. Here is what each one measures and where its thresholds come from.'),
+    h('div', { class: 'panel' },
+      item('Overall comfort',
+        'A 0–100 rating from uncomfortable to comfortable, asked first. It is not part of the score. It is what the app will learn from over time.'),
+      h('div', { class: 'wrow' }, h('div', { class: 'name' }, 'Sound'),
+        h('p', {}, 'Estimated by your phone’s microphone, A-weighted. Because a library and a café call for different sound levels, the limits depend on the kind of place you choose:'),
+        h('table', { class: 'breakdown' }, h('tbody', {},
+          h('tr', {}, h('td', {}, h('strong', {}, 'Kind of place')), h('td', {}, h('strong', {}, 'Good / Caution / Poor'))),
+          [1, 2, 3].map(n => { const c = S.CATEGORIES[n];
+            const kinds = { 1: 'School', 2: 'Home, library, office, healthcare, place of worship', 3: 'Café, restaurant, bar, shop, gym, transit, park and others' }[n];
+            return h('tr', {}, h('td', {}, kinds), h('td', {}, `≤${c.GOOD_MAX} / ${c.GOOD_MAX + 1}–${c.CAUTION_MAX} / ${c.CAUTION_MAX + 1}+ dBA`)); }))),
+        h('p', {}, `Anywhere, ${S.HAZARD_MIN} dBA or above makes a scan automatically red.`),
+        h('p', { class: 'muted small' }, 'Sources: WELL Building Standard v2, Feature S02 Maximum Noise Levels. Good is at or below WELL’s average-level limit for that kind of space, and Caution runs up to WELL’s maximum-level limit. WELL doesn’t name every kind of place, so some assignments are appmospherics’ judgment: homes use WELL’s limits for enclosed spaces (WELL itself sets 35 dBA only for bedrooms at night), and outdoor places use the open-space limits. WELL’s limits are written for background noise, such as ventilation in an empty room, while the app measures everything you hear, including people. The 85 dBA limit is from NIOSH, Criteria for a Recommended Standard: Occupational Noise Exposure (1998).')),
+      item('Light',
+        `Estimated by your phone’s camera and shown as a range, not an exact number: Dark under ${L[0].below} lux, Dim ${L[0].below}–${L[1].below}, Moderate ${L[1].below}–${L[2].below}, Bright ${L[2].below}–${L[3].below.toLocaleString('en-US')}, Daylight over ${L[3].below.toLocaleString('en-US')} lux. Dark is recorded but not scored, because darkness is right for sleep.`,
+        'Sources: EN 12464-1, Lighting of work places (300 lux for reading tasks), one of the reference guidelines named in WELL Building Standard v2, Feature L02 Visual Lighting Design. Brown et al. (2022), Recommendations for daytime, evening, and nighttime indoor light exposure, PLOS Biology 20(3), e3001571, which informs the Daylight and Dark ranges, along with WELL v2 Feature L03 Circadian Lighting Design, which calls for bright, daylight-like light at eye level for at least four hours of the day. Both use a measure of light’s effect on the body’s clock, so the app’s ordinary brightness ranges are a simpler stand-in.'),
+      item('Thermal comfort',
+        'A self-reported 0–100 rating from uncomfortable to comfortable.',
+        'Following ASHRAE Standard 55, which treats thermal comfort as distinct from how warm or cold a space feels, the app asks about the two separately.'),
+      item('How warm or cold it feels',
+        'Cold, Cool, Slightly cool, Neutral, Slightly warm, Warm or Hot. Recorded but not scored. It helps explain a comfort rating.',
+        'Source: the 7-point thermal sensation scale in ASHRAE Standard 55.'),
+      item('Social load (crowding)',
+        'How crowded the place feels, from 1 (uncrowded) to 7 (crowded). Less crowded scores higher.',
+        'Adapted from the crowded–uncrowded rating used in retail crowding research: Harrell, Hutt and Anderson (1980), Journal of Marketing Research 17(1), 45–51; Machleit, Kellaris and Eroglu (1994), Marketing Letters 5(2), 183–194.'),
+      item('Smell',
+        'How pleasant the place smells, from unpleasant to pleasant, or no noticeable smell. No noticeable smell is recorded but not scored.',
+        'Pleasantness is the leading dimension of indoor smell perception in Torriani et al. (2025), Developing a principal components model of indoor smellscape perception in office buildings, Building and Environment 279, 113044.'),
+      item('Seat comfort',
+        'A single 0–10 rating from unacceptable to excellent, or no seating. No seating is recorded but not scored.',
+        'Adapted from the Seat Comfort section of the Cornell Ergonomic Seating Evaluation (Hedge, Cornell University). The app uses one combined question in place of the full evaluation.'),
+      item('Window and nature view',
+        'Whether you can see outside a window, and whether you can see trees or other natural plant life.',
+        'Adapted from Lindberg, Tran and Banasiak (2016), Individual differences in the office: Personality factors and work-space enclosure, Journal of Architectural and Planning Research 33(2), 105–120.'),
+      item('Air quality (CO₂), optional',
+        `From a CO₂ monitor, if you have one. Good under ${C.GOOD_BELOW.toLocaleString('en-US')} ppm, Average ${C.GOOD_BELOW.toLocaleString('en-US')}–${C.AVERAGE_MAX.toLocaleString('en-US')}, Unhealthy ${(C.AVERAGE_MAX + 1).toLocaleString('en-US')}–${C.UNHEALTHY_MAX.toLocaleString('en-US')}. Above ${C.UNHEALTHY_MAX.toLocaleString('en-US')} ppm, a scan is automatically red.`,
+        'Source: the consumer tiers used by the Aranet4 monitor, plus an appmospherics cutoff for the automatic red.'),
+      item('Stress, optional',
+        'The 0–100 stress level shown on a Garmin watch. Lower stress scores higher.',
+        'Source: Garmin’s own stress measure, which is based on heart rate variability.')),
+    h('div', { class: 'panel stack' }, h('h3', {}, 'How the score works'),
+      h('p', {}, `Each measure becomes 0–100 points, and the place score is their average, with every measure counting equally for everyone. Your score uses your What matters settings instead. Green is ${T.GREEN_MIN} and up, yellow ${T.YELLOW_MIN}–${T.GREEN_MIN - 1}, red below ${T.YELLOW_MIN}. These cutoffs are provisional until there is enough data to set them.`),
+      h('p', {}, `A scan is low confidence when fewer than ${CONFIG.LOW_CONFIDENCE_MIN_ANSWERED} of the 9 scored measures are answered. Phone readings are estimates and vary between phone models.`)),
+    h('button', { type: 'button', class: 'btn quiet wide', onclick: back }, 'Back')));
 };
 
 /* ---------------- Full privacy policy ---------------- */
@@ -1378,25 +1708,26 @@ routes.policy = () => {
     h('p', { class: 'muted' }, `appmospherics, operated by Meredith Banasiak LLC. Effective ${POLICY_EFFECTIVE}.`),
     h('p', {}, 'appmospherics measures the places you spend time, such as their sound, light, crowding and other conditions, and helps you learn which environments help you feel your best. This page explains what the app collects, what it does with it, and what it doesn’t do.'),
     sec('What we collect',
-      'When you save a scan, the app saves: the place you chose; the date, time, day of the week and hour of the scan; the readings and ratings you measure or enter (overall comfort, sound level, light level, thermal comfort, social load, smell, seat comfort, and window and nature view, plus CO₂ and Garmin stress if you add them); the score and color the app calculates; and the app version used.',
+      'When you save a scan, the app saves: the place you chose; the date, time, day of the week and hour of the scan; the readings and ratings you measure or enter (overall comfort, sound level, light level, thermal comfort, how warm or cold it feels, social load, smell, seat comfort, and window and nature view, plus CO₂ and Garmin stress if you add them); the score and color the app calculates; and the app version used.',
       'For a public place, we save the venue’s name, type and city, and for places found on OpenStreetMap, the venue’s own public map location. For a private place, such as home, we save only the type of place, with no name or location.',
       'Each scan is linked to a random code created for your device. It doesn’t contain your name, email or contact details. If you change your What matters settings, they are also saved with your code so they can be restored.',
       'We don’t ask for your name, email address, phone number or a login.'),
     sec('Location',
-      'The app never tracks your location in the background. If you tap “Suggest places near me,” your phone’s location is sent once to OpenStreetMap’s map service to find nearby places. It is not saved, and it is never sent to us. Searching by name sends the words you type and your city to OpenStreetMap.'),
+      'What we save is the place you choose for each scan, such as a café, along with that place’s public map location when it comes from OpenStreetMap. Together, your scans form a record of the places you chose to scan and when, which is what powers your timeline.',
+      'The app never tracks your phone’s location in the background. If you tap “Suggest places near me,” your phone’s location is sent once to OpenStreetMap’s map service to find nearby places. It is not saved, and it is never sent to us. Searching by name sends the words you type and your city to OpenStreetMap.'),
     sec('Microphone and camera',
       'During a room reading, the app uses your microphone and camera for a few seconds to calculate a sound level and a light level. That processing happens on your device. No audio, photos or video are recorded, saved or sent anywhere. Only the resulting numbers are saved, and only if you save the scan.'),
     sec('Stored on your device',
       'Your timeline, your code, your city, your What matters settings and any unfinished scan are kept in your browser’s storage on your device. Clearing your browser data removes them from the device.'),
     sec('Who can see what',
-      'Your timeline is visible only to you, or to anyone you give your code to. Other people using appmospherics may see combined information about public places: the place’s name and type, the number of scans, average scores and colors, and the day of the week and hour of scans. They never see dates, your code or anything about private places.'),
+      'Other people using appmospherics can’t see your timeline, unless you give them your code. We, as the operator, can see scans in our records, linked only to your random code, and use them as described below. Other people using the app may see combined information about public places: the place’s name and type, the number of scans, average scores, readings and colors, and the day of the week and hour of scans. They never see dates, your code or anything about private places.'),
     sec('How we use and share the data',
       'We use scans to show scores, to improve how scores are calculated, and for research on how built environments affect comfort and wellbeing. We may share or license combined, place-level information (readings and scores about places, not information about you) with other organizations, such as directories, travel and accessibility services, or research partners. We may publish research findings using combined data. We never share individual timelines, we don’t sell personal information, and we don’t use the data for advertising.'),
     sec('Service providers',
       'Scan data is stored in a private Google Sheet that only we can open, using Google Apps Script. The app is hosted by GitHub Pages, and its fonts are loaded from Google Fonts. Place search uses OpenStreetMap services. Like most web services, these providers may keep standard technical logs such as IP addresses, under their own privacy and security terms.'),
     sec('Keeping and removing data',
       'We keep scans for as long as the app operates, because the value of the data comes from comparing places over time. We may remove entries that look like spam or contain inappropriate content.',
-      'You can delete all of your scans and settings at any time in Settings, using Delete all my data. This removes them from our records and from your device. Shared place summaries are rebuilt without your scans.'),
+      'You can delete your scans and settings at any time in Settings, using Delete all my data. This removes them from our records and from your device, and shared place summaries are rebuilt without them. Deletion works through your code, so if you clear your browser data or change phones without your recovery code, we can’t match older scans to you; contact us and we’ll help where we can. Deleted data may remain in our storage provider’s version history or backups for a limited time. Places you added to the map list, such as a café’s name, stay in the list because they aren’t about you.'),
     sec('Age',
       'appmospherics is for people 18 and older. We don’t knowingly collect information from anyone younger.'),
     sec('Security',
