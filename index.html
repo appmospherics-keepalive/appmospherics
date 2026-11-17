@@ -269,7 +269,7 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
    ===================================================================== */
 // === CONFIG START
 const CONFIG = {
-  APP_VERSION: '2.0.0-alpha.10',
+  APP_VERSION: '2.0.0-alpha.12',
 
   // Paste your Google Apps Script web app URL here (see the setup guide).
   // Leave empty to run in demo mode: scans are saved on this phone only.
@@ -305,11 +305,30 @@ const CONFIG = {
   LIGHT: {
     SAMPLE_SECONDS: 3,
     SETTLE_MS: 800,          // let the camera's auto-exposure settle first
-    ASSUMED_APERTURE: 1.8,   // used only when the phone reports its exposure settings
-    EXPOSURE_CAL_FACTOR: 1.0,
-    // Calibrate: pairs of [camera brightness 0–1, meter lux], darkest to brightest.
-    // Used when the phone doesn't report exposure (typical on iPhone).
-    LUMA_TO_LUX: [[0.004, 2], [0.02, 12], [0.06, 45], [0.15, 200], [0.3, 600], [0.5, 2000], [0.75, 12000]],
+    // Best method: when the phone reports its camera exposure settings (most Android phones),
+    // lux is worked out from exposure time, ISO and picture brightness (the standard exposure
+    // equation), then corrected with a table of [raw estimate, meter lux] pairs, per kind of phone.
+    // Brightness alone can't tell a lit room from outdoors, because the camera adjusts its
+    // exposure to make both look similar.
+    ASSUMED_APERTURE: 1.8,
+    EXPOSURE_TO_LUX: {
+      // Meter readings, Nov 2026: 5 lux indoors, 61 lux indoors, 5,600 lux outdoors.
+      Android: [[170, 5], [584, 61], [14153, 5600]]
+    },
+    EXPOSURE_SLOPE: 1.55,      // log-log slope fitted to those readings, used beyond the ends of the table
+    MAX_LUX: 150000,
+    // Fallback: lux from the picture's average brightness (0–1) alone, using a table of
+    // [brightness, lux] pairs from calibration readings, darkest to brightest, per kind of phone.
+    // The raw brightness is saved with every scan, so these tables can be improved later
+    // and past scans recalculated.
+    LUMA_TO_LUX: {
+      // Generic starting table (not yet calibrated against a meter).
+      iOS: [[0.004, 2], [0.02, 12], [0.06, 45], [0.15, 200], [0.3, 600], [0.5, 2000], [0.75, 12000]],
+      // Android: 0.0606 -> 5 lux and 0.2076 -> 61 lux are calibration readings (Nov 2026).
+      // The points above 0.2076 are provisional until daylight readings are added.
+      Android: [[0.01, 0.4], [0.0606, 5], [0.2076, 61], [0.4, 600], [0.6, 3000], [0.8, 12000]],
+      Other: [[0.004, 2], [0.02, 12], [0.06, 45], [0.15, 200], [0.3, 600], [0.5, 2000], [0.75, 12000]]
+    },
     TIERS: [
       { name: 'Dark', below: 10 },
       { name: 'Dim', below: 50 },
@@ -456,8 +475,8 @@ function scoreScan(s, weights) {
   };
 }
 // Camera brightness (0–1) to lux, interpolating the calibration table on a log scale.
-function lumaToLux(luma) {
-  const T = CONFIG.LIGHT.LUMA_TO_LUX;
+function lumaToLux(luma, platform) {
+  const T = CONFIG.LIGHT.LUMA_TO_LUX[platform] || CONFIG.LIGHT.LUMA_TO_LUX.Other;
   if (!isNum(luma) || luma < 0) return null;
   if (luma <= T[0][0]) return T[0][1] * (luma / T[0][0]);
   for (let i = 1; i < T.length; i++) {
@@ -467,6 +486,30 @@ function lumaToLux(luma) {
     }
   }
   return T[T.length - 1][1];
+}
+// Camera exposure settings to lux. Raw estimate from the exposure equation
+// (EV100 = log2(N²/t) − log2(ISO/100); lux ≈ 2.5 × 2^EV100 × brightness/0.18),
+// then corrected with the phone type's calibration table on a log scale.
+function rawExposureLux(luma, exposureTime, iso) {
+  if (!isNum(luma) || !(exposureTime > 0) || !(iso > 0)) return null;
+  const seconds = exposureTime * 1e-4; // reported in units of 100 microseconds
+  const ev100 = Math.log2(CONFIG.LIGHT.ASSUMED_APERTURE ** 2 / seconds) - Math.log2(iso / 100);
+  return 2.5 * Math.pow(2, ev100) * (Math.max(luma, 1e-4) / 0.18);
+}
+function exposureLux(luma, exposureTime, iso, platform) {
+  const raw = rawExposureLux(luma, exposureTime, iso);
+  if (raw == null) return null;
+  const T = CONFIG.LIGHT.EXPOSURE_TO_LUX[platform];
+  if (!T) return null; // no calibration for this kind of phone yet: use the brightness table
+  const k = CONFIG.LIGHT.EXPOSURE_SLOPE, L = Math.log;
+  let y;
+  if (raw <= T[0][0]) y = L(T[0][1]) + k * (L(raw) - L(T[0][0]));
+  else if (raw >= T[T.length - 1][0]) y = L(T[T.length - 1][1]) + k * (L(raw) - L(T[T.length - 1][0]));
+  else for (let i = 1; i < T.length; i++) if (raw <= T[i][0]) {
+    const f = (L(raw) - L(T[i - 1][0])) / (L(T[i][0]) - L(T[i - 1][0]));
+    y = L(T[i - 1][1]) + f * (L(T[i][1]) - L(T[i - 1][1])); break;
+  }
+  return Math.min(Math.exp(y), CONFIG.LIGHT.MAX_LUX);
 }
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const CODE_PATTERN = /^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
@@ -608,6 +651,9 @@ async function syncPending() {
    Only the resulting numbers are kept. No audio or images are saved or sent.
    ===================================================================== */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Only the kind of phone is recorded, never the model.
+const DEVICE_PLATFORM = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'iOS'
+  : /android/i.test(navigator.userAgent) ? 'Android' : 'Other';
 const CALIBRATE = /[?&#]calibrate\b/.test(location.search + location.hash);
 const SRGB_TO_LINEAR = Array.from({ length: 256 }, (_, i) => { const c = i / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
 const median = a => { const b = a.slice().sort((x, y) => x - y); const m = b.length >> 1; return b.length ? (b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2) : null; };
@@ -654,7 +700,7 @@ function startReading(preview, onTick) {
     if (preview) { try { preview.pause(); } catch (e) {} preview.srcObject = null; }
   };
   const run = async () => {
-    const out = { dba: null, dbfs: null, clipped: false, lux: null, luma: null, method: null, soundError: null, lightError: null };
+    const out = { dba: null, dbfs: null, clipped: false, lux: null, luma: null, method: null, exposureTime: null, iso: null, soundError: null, lightError: null };
     try {
       let opened;
       try { opened = await openStreams(); } catch (e) { out.soundError = e; out.lightError = e; return out; }
@@ -724,12 +770,12 @@ function startReading(preview, onTick) {
         if (!lumas.length) throw new Error('The camera didn’t deliver a picture.');
         out.luma = median(lumas);
         const st = videoTrack.getSettings ? videoTrack.getSettings() : {};
-        if (isNum(st.exposureTime) && st.exposureTime > 0 && isNum(st.iso) && st.iso > 0) {
-          const seconds = st.exposureTime * 1e-4; // the standard reports exposure in units of 100 microseconds
-          const ev100 = Math.log2(CONFIG.LIGHT.ASSUMED_APERTURE ** 2 / seconds) - Math.log2(st.iso / 100);
-          out.lux = 2.5 * Math.pow(2, ev100) * (out.luma / 0.18) * CONFIG.LIGHT.EXPOSURE_CAL_FACTOR;
-          out.method = 'exposure';
-        } else { out.lux = lumaToLux(out.luma); out.method = 'brightness'; }
+        // Keep the camera's exposure settings as raw data when the phone reports them, for later calibration.
+        if (isNum(st.exposureTime) && st.exposureTime > 0) out.exposureTime = st.exposureTime;
+        if (isNum(st.iso) && st.iso > 0) out.iso = st.iso;
+        const ex = exposureLux(out.luma, out.exposureTime, out.iso, DEVICE_PLATFORM);
+        if (ex != null) { out.lux = ex; out.method = 'exposure'; }
+        else { out.lux = lumaToLux(out.luma, DEVICE_PLATFORM); out.method = 'brightness'; }
       })().catch(e => { out.lightError = e; }));
 
       await Promise.all(jobs);
@@ -1062,7 +1108,7 @@ routes.home = () => {
 
 /* ---------------- Scan ---------------- */
 function emptyDraft() {
-  return { place: null, private_type: null, overall_comfort: null, sound_dba: null, light_lux_est: null, light_tier: null, light_method: null,
+  return { place: null, private_type: null, overall_comfort: null, sound_dba: null, light_lux_est: null, light_tier: null, light_method: null, sound_dbfs: null, sound_clipped: false, light_luma: null, cam_exposure_time: null, cam_iso: null,
     thermal: null, thermal_sensation: null, social: null, smell: null, smell_none: false, seat: null, window: null, nature: null, co2: null, stress: null };
 }
 function beginScan(resume) {
@@ -1155,7 +1201,7 @@ routes['scan-reading'] = () => {
         cell('Light', d.light_tier || 'No reading', d.light_tier ? 'Estimated by the camera' : (res && res.lightError ? sensorMessage(res.lightError, 'Camera') : ''))),
       res && res.clipped && h('p', { class: 'notice small' }, 'The sound was loud enough to overload this phone’s microphone, so the real level may be higher than shown.'),
       res && (res.soundError || res.lightError) && h('p', { class: 'muted small' }, 'To include a missing reading, allow the microphone and camera for this site in your browser settings, then read again. You can also continue without it.'),
-      res && CALIBRATE && h('p', { class: 'notice info small' }, `Calibration values. Raw sound: ${res.dbfs != null ? res.dbfs.toFixed(1) : '–'} dBFS. Brightness: ${res.luma != null ? res.luma.toFixed(4) : '–'}. Lux estimate: ${res.lux != null ? Math.round(res.lux) : '–'} (${res.method || 'none'}).`));
+      res && CALIBRATE && h('p', { class: 'notice info small' }, `Calibration values. Raw sound: ${res.dbfs != null ? res.dbfs.toFixed(1) : '–'} dBFS. Brightness: ${res.luma != null ? res.luma.toFixed(4) : '–'}. Lux estimate: ${res.lux != null ? Math.round(res.lux) : '–'} (${res.method || 'none'}). Phone: ${DEVICE_PLATFORM}.${res.exposureTime ? ` Exposure: ${res.exposureTime}, ISO ${res.iso ?? '–'}.` : ''}`));
   }
   async function run() {
     startBtn.disabled = true; skip.classList.add('hidden'); nextBtn.classList.add('hidden'); fill(out);
@@ -1179,7 +1225,13 @@ routes['scan-reading'] = () => {
       sound_dba: isNum(res.dba) ? Math.round(res.dba * 10) / 10 : null,
       light_lux_est: isNum(res.lux) ? Math.round(res.lux) : null,
       light_tier: lightTier(res.lux),
-      light_method: res.method
+      light_method: res.method,
+      // Raw readings before conversion, kept so estimates can be recalculated as calibration improves
+      sound_dbfs: isNum(res.dbfs) ? Math.round(res.dbfs * 100) / 100 : null,
+      sound_clipped: res.clipped === true,
+      light_luma: isNum(res.luma) ? Math.round(res.luma * 100000) / 100000 : null,
+      cam_exposure_time: res.exposureTime,
+      cam_iso: res.iso
     });
     const got = isNum(d.sound_dba) || d.light_tier;
     r.setBig(got ? 'Done' : 'No reading'); r.setProgress(got ? 1 : 0);
@@ -1268,6 +1320,7 @@ function saveScan() {
     scan_id: newId(), user_id: ensureUser(),
     timestamp_local: localISO(now), day_of_week: DAYS[now.getDay()], hour: now.getHours(),
     stress_device: d.stress != null ? 'Garmin' : null,
+    device_platform: DEVICE_PLATFORM,
     app_version: CONFIG.APP_VERSION, synced: false
   });
   const sc = scoreScan(s, null); // the stored score always uses equal weights
@@ -1664,9 +1717,10 @@ routes.measures = () => {
             const kinds = { 1: 'School', 2: 'Home, library, office, healthcare, place of worship', 3: 'Café, restaurant, bar, shop, gym, transit, park and others' }[n];
             return h('tr', {}, h('td', {}, kinds), h('td', {}, `≤${c.GOOD_MAX} / ${c.GOOD_MAX + 1}–${c.CAUTION_MAX} / ${c.CAUTION_MAX + 1}+ dBA`)); }))),
         h('p', {}, `Anywhere, ${S.HAZARD_MIN} dBA or above makes a scan automatically red.`),
+        h('p', {}, 'Phone microphones differ, so readings are approximate. The raw reading is saved with each scan, so estimates can be corrected later as calibration improves.'),
         h('p', { class: 'muted small' }, 'Sources: WELL Building Standard v2, Feature S02 Maximum Noise Levels. Good is at or below WELL’s average-level limit for that kind of space, and Caution runs up to WELL’s maximum-level limit. WELL doesn’t name every kind of place, so some assignments are appmospherics’ judgment: homes use WELL’s limits for enclosed spaces (WELL itself sets 35 dBA only for bedrooms at night), and outdoor places use the open-space limits. WELL’s limits are written for background noise, such as ventilation in an empty room, while the app measures everything you hear, including people. The 85 dBA limit is from NIOSH, Criteria for a Recommended Standard: Occupational Noise Exposure (1998).')),
       item('Light',
-        `Estimated by your phone’s camera and shown as a range, not an exact number: Dark under ${L[0].below} lux, Dim ${L[0].below}–${L[1].below}, Moderate ${L[1].below}–${L[2].below}, Bright ${L[2].below}–${L[3].below.toLocaleString('en-US')}, Daylight over ${L[3].below.toLocaleString('en-US')} lux. Dark is recorded but not scored, because darkness is right for sleep.`,
+        `Estimated by your phone’s camera and shown as a range, not an exact number: Dark under ${L[0].below} lux, Dim ${L[0].below}–${L[1].below}, Moderate ${L[1].below}–${L[2].below}, Bright ${L[2].below}–${L[3].below.toLocaleString('en-US')}, Daylight over ${L[3].below.toLocaleString('en-US')} lux. Dark is recorded but not scored, because darkness is right for sleep. Phone cameras differ, so the estimate is approximate; the raw brightness is saved with each scan so it can be corrected later.`,
         'Sources: EN 12464-1, Lighting of work places (300 lux for reading tasks), one of the reference guidelines named in WELL Building Standard v2, Feature L02 Visual Lighting Design. Brown et al. (2022), Recommendations for daytime, evening, and nighttime indoor light exposure, PLOS Biology 20(3), e3001571, which informs the Daylight and Dark ranges, along with WELL v2 Feature L03 Circadian Lighting Design, which calls for bright, daylight-like light at eye level for at least four hours of the day. Both use a measure of light’s effect on the body’s clock, so the app’s ordinary brightness ranges are a simpler stand-in.'),
       item('Thermal comfort',
         'A self-reported 0–100 rating from uncomfortable to comfortable.',
@@ -1709,6 +1763,7 @@ routes.policy = () => {
     h('p', {}, 'appmospherics measures the places you spend time, such as their sound, light, crowding and other conditions, and helps you learn which environments help you feel your best. This page explains what the app collects, what it does with it, and what it doesn’t do.'),
     sec('What we collect',
       'When you save a scan, the app saves: the place you chose; the date, time, day of the week and hour of the scan; the readings and ratings you measure or enter (overall comfort, sound level, light level, thermal comfort, how warm or cold it feels, social load, smell, seat comfort, and window and nature view, plus CO₂ and Garmin stress if you add them); the score and color the app calculates; and the app version used.',
+      'With each room reading, we also save its technical details before conversion: the raw sound level, the picture’s average brightness, the camera’s exposure settings when your phone reports them, and whether your phone is an iPhone or Android (never the model). This lets us correct estimates later as calibration improves.',
       'For a public place, we save the venue’s name, type and city, and for places found on OpenStreetMap, the venue’s own public map location. For a private place, such as home, we save only the type of place, with no name or location.',
       'Each scan is linked to a random code created for your device. It doesn’t contain your name, email or contact details. If you change your What matters settings, they are also saved with your code so they can be restored.',
       'We don’t ask for your name, email address, phone number or a login.'),
