@@ -163,8 +163,15 @@ details.more .inside { padding-bottom: 14px; }
 .ring.yellow .core { fill: color-mix(in srgb, var(--amber) 24%, var(--surface)); }
 .ring.red .core { fill: color-mix(in srgb, var(--red) 18%, var(--surface)); }
 .ring-button { background: none; border: 0; padding: 0; cursor: pointer; display: block; border-radius: 50%; }
-.glowcard { margin-top: 16px; border-radius: 18px; background: var(--surface); overflow: hidden; height: 220px; }
-.glowcard svg { width: 100%; height: 100%; display: block; }
+/* Home: a soft wash of warm light behind the top of the screen. Decorative only. */
+body.ambient::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 560px; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 70% 60% at 82% 12%, rgba(246,206,78,0.55), rgba(246,206,78,0) 70%), radial-gradient(ellipse 55% 40% at 10% 62%, rgba(246,206,78,0.22), rgba(246,206,78,0) 70%); }
+body.ambient .app { position: relative; z-index: 1; }
+body.ambient .topbar { background: transparent; position: relative; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body.ambient::before { opacity: 0.45; } }
+:root[data-theme="dark"] body.ambient::before { opacity: 0.45; }
+.home-title { font-size: clamp(32px, 9vw, 40px); margin-top: 96px; line-height: 1.05; }
+.home-sub { font-size: 17px; color: var(--muted); max-width: 30ch; margin: 0; }
 
 .preview { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: var(--line); border: 2px solid var(--line); flex: none; }
 .readout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -220,7 +227,12 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
 .fitmap .axtitle { font-family: var(--body); font-size: 12px; fill: var(--ink); }
 .fitmap .gridline { stroke: var(--grid); stroke-width: 1; }
 .fitmap .midline { stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 3 4; }
-.fitmap .pt { stroke: var(--ink); stroke-width: 2; fill: var(--surface); cursor: pointer; }
+.fitmap .pt { fill: var(--ink); cursor: pointer; }
+.fitmap .pt.onbrand, .fitmap .ptlabel.onbrand { fill: #2E2C29; }
+.fitmap .pt.sel { stroke: var(--surface); stroke-width: 2.5; paint-order: stroke; filter: drop-shadow(0 0 0 #2E2C29); }
+.fitmap .tilelabel { font-family: var(--display); font-size: 16px; font-weight: 800; fill: var(--ink); }
+.fitmap .axword { font-size: 12.5px; font-weight: 700; fill: var(--muted); }
+.fitmap .ptlabel { font-size: 12.5px; font-weight: 700; fill: var(--ink); }
 .fitmap .pt.sel { stroke: var(--ink); stroke-width: 2.5; }
 .fitlegend { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; font-size: 14px; }
 .fitlegend > div { display: flex; gap: 8px; align-items: flex-start; min-width: 0; }
@@ -259,15 +271,15 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
     <span class="mode-note" id="modeNote"></span>
   </header>
   <main id="view"></main>
-  <p class="attrib"><button type="button" class="linkbtn small" id="termsLink">Terms</button> · <button type="button" class="linkbtn small" id="policyLink">Privacy policy</button></p>
+  <p class="attrib"><button type="button" class="linkbtn small" id="policyLink">Privacy policy</button></p>
   <p class="attrib" style="margin-top:4px">Place data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
 </div>
 
 <nav class="tabbar hidden" id="tabbar" aria-label="Main">
   <div class="inner">
     <button type="button" data-tab="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 22s-7.5-6.6-7.5-12.3a7.5 7.5 0 0 1 15 0C19.5 15.4 12 22 12 22zm0-9.3a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>Scan</button>
-    <button type="button" data-tab="timeline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Timeline</button>
-    <button type="button" data-tab="weights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>What matters</button>
+    <button type="button" data-tab="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Insights</button>
+    <button type="button" data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>History</button>
     <button type="button" data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Settings</button>
   </div>
 </nav>
@@ -282,9 +294,6 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
 // === CONFIG START
 const CONFIG = {
   APP_VERSION: '2.0.0-alpha.17',
-
-  // Raise this when the Terms of Service change enough that everyone should agree again.
-  TERMS_VERSION: 1,
 
   // Paste your Google Apps Script web app URL here (see the setup guide).
   // Leave empty to run in demo mode: scans are saved on this phone only.
@@ -602,7 +611,6 @@ const validScan = s => s && typeof s === 'object' && typeof s.scan_id === 'strin
 const state = {
   userId: normalizeCode(store.get('userId', null)),
   consented: store.get('consented', false) === true,
-  termsVersion: Number(store.get('termsVersion', 0)) || 0,
   installSeen: store.get('installSeen', false) === true,
   cityAsked: store.get('citySkipped', false) === true,
   city: String(store.get('city', '') || ''),
@@ -966,6 +974,7 @@ function mount(tab, ...kids) {
   fill($view, kids);
   $tabbar.classList.toggle('hidden', !tab);
   $tabbar.querySelectorAll('button').forEach(b => { if (b.dataset.tab === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  document.body.classList.toggle('ambient', tab === 'home');
   window.scrollTo(0, 0);
   const h1 = $view.querySelector('h1');
   if (h1) { h1.setAttribute('tabindex', '-1'); h1.focus({ preventScroll: true }); }
@@ -1073,8 +1082,7 @@ function show(st) {
   stopReading();
   let name = st && st.v, params = (st && st.p) || {};
   if (st && st.v === 'policy') return routes.policy();
-  if (st && st.v === 'terms') return routes.terms();
-  if (!agreedToAll()) return onboard();
+  if (!state.consented) return onboard();
   if (SCAN_STEPS.includes(name) && !state.draft) name = 'home';
   if (name === 'result' && !state.scans.some(s => s.scan_id === params.id)) name = 'home';
   (routes[name] || routes.home)(params);
@@ -1083,23 +1091,7 @@ window.addEventListener('popstate', e => show(e.state));
 
 /* ---------------- First run ---------------- */
 const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-const agreedToAll = () => state.consented && state.termsVersion >= CONFIG.TERMS_VERSION;
-function agree() {
-  state.consented = true; state.termsVersion = CONFIG.TERMS_VERSION;
-  store.set('consented', true); store.set('termsVersion', CONFIG.TERMS_VERSION);
-  onboard();
-}
-const agreeLinks = () => h('p', { class: 'small' }, 'By tapping I agree, you agree to the ',
-  h('button', { type: 'button', class: 'linkbtn small', onclick: () => go('terms') }, 'Terms of Service'), ' and ',
-  h('button', { type: 'button', class: 'linkbtn small', onclick: () => go('policy') }, 'Privacy policy'), '.');
 function onboard() {
-  if (state.consented && state.termsVersion < CONFIG.TERMS_VERSION) {
-    return mount(null, h('section', { class: 'stack' },
-      h('h1', {}, state.termsVersion ? 'Our terms have changed' : 'We’ve added Terms of Service'),
-      h('p', {}, 'They explain how the app may be used, who owns it, and what you allow us to do with your scans, in the same plain language as the privacy policy. Nothing about what the app collects has changed.'),
-      agreeLinks(),
-      h('button', { type: 'button', class: 'btn wide', onclick: agree }, 'I agree')));
-  }
   if (!state.consented) {
     return mount(null, h('section', { class: 'stack' },
       h('h1', {}, 'Before you start'),
@@ -1111,8 +1103,8 @@ function onboard() {
         h('li', {}, h('strong', {}, 'Other people can’t see your timeline. '), 'We can see scans in our records, linked only to your random code. Anything shared or published combines many people’s scans.'),
         h('li', {}, h('strong', {}, 'You can delete your scans '), 'anytime in Settings.'))),
       h('p', { class: 'muted small' }, 'appmospherics is not a medical tool, and its readings are estimates. You must be 18 or older to use the app.'),
-      agreeLinks(),
-      h('button', { type: 'button', class: 'btn wide', onclick: agree }, 'I agree')));
+      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('policy') }, 'Read the full privacy policy'),
+      h('button', { type: 'button', class: 'btn wide', onclick: () => { state.consented = true; store.set('consented', true); onboard(); } }, 'I agree')));
   }
   if (!isStandalone() && !state.installSeen) {
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -1146,23 +1138,14 @@ function scanListItem(s) {
     h('span', { class: 'grow' }, h('span', { class: 'title' }, placeName(s)), h('span', { class: 'sub' }, `${sc.yourScore == null ? 'No score' : lightWord(sc.yourLight)} · ${fmtDay(d, { weekday: 'short', month: 'short', day: 'numeric' })}, ${fmtTime(d)}`)),
     h('span', { class: 'num', 'aria-label': sc.yourScore == null ? 'No score' : `Your score ${sc.yourScore}, ${lightWord(sc.yourLight)}` }, sc.yourScore == null ? '–' : sc.yourScore));
 }
-// The home image: a warm glow with a marker for where you are. Decorative, so hidden from screen readers.
-function glowCard() {
-  const box = h('div', { class: 'glowcard', 'aria-hidden': 'true' });
-  box.innerHTML = '<svg viewBox="0 0 342 220" preserveAspectRatio="xMidYMid slice"><defs><filter id="amGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="26"/></filter></defs>'
-    + '<g filter="url(#amGlow)"><circle cx="205" cy="104" r="84" fill="#F6CE4E"/><circle cx="205" cy="104" r="34" fill="#FBE599"/><circle cx="62" cy="190" r="56" fill="#F6CE4E" fill-opacity="0.4"/></g>'
-    + '<ellipse cx="205" cy="132" rx="14" ry="4" fill="#2E2C29" fill-opacity="0.15"/><path d="M205 130s-17-15-17-28a17 17 0 0 1 34 0c0 13-17 28-17 28z" fill="#2E2C29"/><circle cx="205" cy="102" r="6" fill="#FFFFFF"/></svg>';
-  return box;
-}
 routes.home = () => {
   const recent = state.scans.slice().sort((a, b) => new Date(b.timestamp_local) - new Date(a.timestamp_local)).slice(0, 3);
   const waiting = state.scans.filter(s => !s.synced).length;
   const unfinished = savedDraft();
   mount('home', h('section', {},
-    h('h1', {}, 'Learn your best environment.'),
-    h('p', { class: 'muted' }, 'A scan takes about a minute: a short room reading, then a few quick questions.'),
-    glowCard(),
-    h('button', { type: 'button', class: 'btn wide', style: 'margin-top:16px', onclick: () => beginScan() }, 'Start a scan'),
+    h('h1', { class: 'home-title' }, 'Learn your best environment.'),
+    h('p', { class: 'home-sub' }, 'Scan the places you spend time. Over time you’ll see which ones support you.'),
+    h('button', { type: 'button', class: 'btn wide', style: 'margin-top:20px', onclick: () => beginScan() }, 'Start a scan'),
     h('div', { class: 'stack block-gap' },
       unfinished && h('div', { class: 'notice info' }, h('p', {}, `You have an unfinished scan${unfinished.place || unfinished.private_type ? ' at ' + placeName(unfinished) : ''}.`),
         h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn compact', onclick: () => beginScan(unfinished) }, 'Continue it'),
@@ -1485,7 +1468,7 @@ function notYet(have) {
 function fitMapPanel(points) {
   if (!points.length) {
     return h('div', { class: 'panel stack' },
-      h('p', {}, 'Your fit map starts with your first scan. Each scan with a comfort rating adds one dot: how the place measured, against how you felt there.'),
+      h('p', {}, 'Your places appear here after your first scan: how each place measured, against how you felt there.'),
       h('div', {}, h('button', { type: 'button', class: 'btn', onclick: () => beginScan() }, 'Start a scan')));
   }
   // Summary sentence, worked out from your own scans
@@ -1500,63 +1483,55 @@ function fitMapPanel(points) {
   if (hiddenAt.length) lede.push(document.createTextNode(` ${listText(hiddenAt)} measured well but felt off at least once, so something there may not be measured.`));
   if (despiteAt.length) lede.push(document.createTextNode(` ${listText(despiteAt)} measured poorly but felt good.`));
 
-  // The chart
-  const L = 44, T = 10, W = 284, H = 252;
-  const x = v => L + v / 100 * W, y = v => T + (1 - v / 100) * H, S = CONFIG.PATTERNS.SPLIT;
-  const svg = svgNode('svg', { viewBox: '0 0 340 320', role: 'img', 'aria-label': `Fit map of ${plural(points.length, 'scan')}` });
-  [['despite', 0, S, S, 100 - S], ['match', S, S, 100 - S, 100 - S], ['avoid', 0, 0, S, S], ['hidden', S, 0, 100 - S, S]].forEach(([q, x0, y0, w, hh]) =>
-    svg.append(svgNode('rect', { x: x(x0), y: y(y0 + hh), width: w / 100 * W, height: hh / 100 * H, style: `fill:${FIT_Q[q].tint}` })));
-  for (const v of [0, 25, 75, 100]) {
-    svg.append(svgNode('line', { class: 'gridline', x1: x(v), x2: x(v), y1: T, y2: T + H }));
-    svg.append(svgNode('line', { class: 'gridline', x1: L, x2: L + W, y1: y(v), y2: y(v) }));
-  }
-  svg.append(svgNode('line', { class: 'midline', x1: x(S), x2: x(S), y1: T, y2: T + H }));
-  svg.append(svgNode('line', { class: 'midline', x1: L, x2: L + W, y1: y(S), y2: y(S) }));
-  const label = (q, tx, top, anchor) => {
-    const t = svgNode('text', { class: 'qlabel', x: tx, y: top, 'text-anchor': anchor, style: `fill:${FIT_Q[q].color}` });
-    const lines = FIT_Q[q].tag ? [FIT_Q[q].tag, ...FIT_Q[q].lines] : FIT_Q[q].lines;
-    lines.forEach((line, i) => t.append(svgNode('tspan', { x: tx, dy: i ? 13 : 0, class: FIT_Q[q].tag && i === 0 ? 'qtag' : null }, line)));
-    svg.append(t);
-  };
-  label('despite', x(2), y(96), 'start'); label('match', x(98), y(64), 'end');
-  label('avoid', x(2), y(46), 'start'); label('hidden', x(98), y(3) - 13, 'end');
-  for (const v of [0, 50, 100]) {
-    svg.append(svgNode('text', { class: 'tick', x: x(v), y: T + H + 16, 'text-anchor': v === 0 ? 'start' : v === 100 ? 'end' : 'middle' }, v));
-    svg.append(svgNode('text', { class: 'tick', x: L - 8, y: y(v) + 4, 'text-anchor': 'end' }, v));
-  }
-  svg.append(svgNode('text', { class: 'axtitle', x: L + W / 2, y: T + H + 36, 'text-anchor': 'middle' }, 'How the place measured (place score) →'));
-  svg.append(svgNode('text', { class: 'axtitle', x: -(T + H / 2), y: 14, transform: 'rotate(-90)', 'text-anchor': 'middle' }, 'How you felt (comfort) →'));
-
+  // The map: four soft tiles split at 50. Only the two clear corners are named (Best fit, Worst fit).
+  // One dot per place (its average), except home, where every scan is its own house.
+  const S = CONFIG.PATTERNS.SPLIT;
+  const x = v => v < S ? 40 + (v / S) * 133 : 205 + ((v - S) / (100 - S)) * 133;
+  const y = v => v >= S ? 202 - ((v - S) / (100 - S)) * 140 : 400 - (v / S) * 140;
+  const svg = svgNode('svg', { viewBox: '0 0 350 420', role: 'img', 'aria-label': 'Your places, placed by how each measured and how you felt there' });
+  [[28, 24, 'var(--bg)'], [193, 24, 'var(--brand)'], [28, 222, 'var(--grid)'], [193, 222, 'var(--bg)']].forEach(([rx, ry, f]) =>
+    svg.append(svgNode('rect', { x: rx, y: ry, width: 157, height: 190, rx: 16, style: `fill:${f}` })));
+  svg.append(svgNode('text', { class: 'tilelabel', x: 205, y: 48, style: 'fill:#2E2C29' }, 'Best fit'));
+  svg.append(svgNode('text', { class: 'tilelabel', x: 40, y: 246 }, 'Worst fit'));
+  svg.append(svgNode('text', { class: 'axword', x: 106, y: 15, 'text-anchor': 'middle' }, 'Measured poorly'));
+  svg.append(svgNode('text', { class: 'axword', x: 271, y: 15, 'text-anchor': 'middle' }, 'Measured well'));
+  svg.append(svgNode('text', { class: 'axword', transform: 'translate(15 119) rotate(-90)', 'text-anchor': 'middle' }, 'Felt good'));
+  svg.append(svgNode('text', { class: 'axword', transform: 'translate(15 317) rotate(-90)', 'text-anchor': 'middle' }, 'Felt off'));
+  const avg = a => Math.round(a.reduce((t, v) => t + v, 0) / a.length);
+  const isHome = p => p.scan.private_type === 'Home';
+  const groups = {};
+  points.filter(p => !isHome(p)).forEach(p => { const k = placeName(p.scan); (groups[k] = groups[k] || []).push(p); });
+  const marks = Object.entries(groups).map(([name, ps]) => ({ name, ps, home: false, score: avg(ps.map(p => p.score)), comfort: avg(ps.map(p => p.comfort)) }))
+    .concat(points.filter(isHome).map(p => ({ name: 'Home', ps: [p], home: true, score: p.score, comfort: p.comfort })));
   const detail = h('div', { class: 'fitdetail', 'aria-live': 'polite' });
-  const showDetail = p => {
-    const d = new Date(p.scan.timestamp_local);
+  const latest = ps => ps.slice().sort((a, b) => new Date(b.scan.timestamp_local) - new Date(a.scan.timestamp_local))[0];
+  const showDetail = m => {
+    const p = latest(m.ps), d = new Date(p.scan.timestamp_local);
     fill(detail,
-      h('div', {}, h('strong', {}, placeName(p.scan)), ` ${fmtDay(d, { weekday: 'short', month: 'short', day: 'numeric' })}, ${fmtTime(d)}`),
-      h('div', {}, `Place score ${p.score}. You felt ${p.comfort} of 100. `, h('span', { class: 'muted' }, FIT_Q[p.q].label + '.')),
-      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('result', { id: p.scan.scan_id }) }, 'Open this scan'));
+      h('div', {}, h('strong', {}, m.name), m.home ? ` ${fmtDay(d, { weekday: 'short', month: 'short', day: 'numeric' })}, ${fmtTime(d)}` : ` · ${plural(m.ps.length, 'scan')}`),
+      h('div', {}, m.home || m.ps.length === 1 ? `Place score ${m.score}. You felt ${m.comfort} of 100.` : `On average: place score ${m.score}, you felt ${m.comfort} of 100.`),
+      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('result', { id: p.scan.scan_id }) }, m.home || m.ps.length === 1 ? 'Open this scan' : 'Open the latest scan'));
   };
-  const sorted = points.slice().sort((a, b) => new Date(a.scan.timestamp_local) - new Date(b.scan.timestamp_local));
-  const dots = sorted.map(p => {
-    const r0 = 6.5;
-    const c = svgNode('circle', { class: 'pt', cx: x(p.score), cy: y(p.comfort), r: r0, tabindex: 0, role: 'button',
-      'aria-label': `${placeName(p.scan)}, ${fmtDay(new Date(p.scan.timestamp_local), { month: 'short', day: 'numeric' })}: place score ${p.score}, comfort ${p.comfort}, ${FIT_Q[p.q].label}` });
-    const pick = () => {
-      dots.forEach(o => { o.c.classList.remove('sel'); o.c.setAttribute('r', o.r0); });
-      c.classList.add('sel'); c.setAttribute('r', r0 + 2); tl.selected = p.scan.scan_id; showDetail(p);
-    };
-    c.addEventListener('click', pick);
-    c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
-    svg.append(c);
-    return { c, r0, p, pick };
+  const nodes = marks.map(m => {
+    const cx = x(m.score), cy = y(m.comfort), onb = m.score >= S && m.comfort >= S ? ' onbrand' : '';
+    const node = m.home
+      ? svgNode('path', { class: 'pt home' + onb, d: `M${cx - 8} ${cy}L${cx} ${cy - 8}L${cx + 8} ${cy}V${cy + 8}H${cx - 8}Z` })
+      : svgNode('circle', { class: 'pt' + onb, cx, cy, r: 6.5 });
+    node.setAttribute('tabindex', '0'); node.setAttribute('role', 'button');
+    node.setAttribute('aria-label', `${m.name}: place score ${m.score}, you felt ${m.comfort} of 100`);
+    const pick = () => { nodes.forEach(o => o.node.classList.remove('sel')); node.classList.add('sel'); tl.selected = latest(m.ps).scan.scan_id; showDetail(m); };
+    node.addEventListener('click', pick);
+    node.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    svg.append(node);
+    if (!m.home) {
+      const right = m.score >= S ? cx > 271 : cx > 106; // label away from the tile edge
+      svg.append(svgNode('text', { class: 'ptlabel' + onb, x: right ? cx - 11 : cx + 11, y: cy + 4, 'text-anchor': right ? 'end' : 'start' }, m.name.length > 18 ? m.name.slice(0, 17) + '…' : m.name));
+    }
+    return { node, m, pick };
   });
-  (dots.find(o => o.p.scan.scan_id === tl.selected) || dots[dots.length - 1]).pick(); // open on the latest scan
-
-  const counts = {}; points.forEach(p => { counts[p.q] = (counts[p.q] || 0) + 1; });
-  const legend = h('div', { class: 'fitlegend' }, ['match', 'hidden', 'despite', 'avoid'].map(q => {
-    const sw = h('span', { class: 'sw', style: `background:${FIT_Q[q].tint === 'var(--q-hidden-tint)' || FIT_Q[q].tint === 'var(--q-despite-tint)' ? 'var(--surface)' : FIT_Q[q].tint}` });
-    return h('div', {}, sw, h('span', {}, FIT_Q[q].tag && h('span', { class: 'ltag' }, FIT_Q[q].tag), h('strong', {}, FIT_Q[q].label), ` (${counts[q] || 0})`));
-  }));
-  return h('div', { class: 'panel stack fitmap' }, h('p', { class: 'lede' }, lede), svg, legend, detail);
+  (nodes.find(o => o.m.ps.some(p => p.scan.scan_id === tl.selected)) || nodes[nodes.length - 1]).pick();
+  const key = h('p', { class: 'muted small', style: 'margin:0' }, 'Each dot is one of your places. ', points.some(isHome) ? 'Each house is one scan at home. ' : '', 'Tap one for details.');
+  return h('div', { class: 'panel stack fitmap' }, h('p', { class: 'lede' }, lede), svg, key, detail);
 }
 
 function movesPanel(points) {
@@ -1618,10 +1593,10 @@ function placeFitPanel(points) {
 function patternsView() {
   const points = patternPoints(state.scans);
   return [
-    h('div', { class: 'stack' }, h('h2', {}, 'Your fit map'), h('p', { class: 'muted' }, 'Each dot is one scan: how the place measured, against how you felt there.'), fitMapPanel(points)),
+    h('div', { class: 'stack' }, h('h2', {}, 'Your places'), h('p', { class: 'muted' }, 'Where each place lands: how it measured, against how you felt there.'), fitMapPanel(points)),
     h('div', { class: 'stack block-gap' }, h('h2', {}, 'What moves you'), h('p', { class: 'muted' }, 'How closely each measure follows your comfort ratings.'), movesPanel(points)),
     h('div', { class: 'stack block-gap' }, h('h2', {}, 'How a place fits you'), h('p', { class: 'muted' }, 'A place’s typical readings, set against the range where you’ve felt comfortable.'), placeFitPanel(points)),
-    h('p', { class: 'muted small' }, 'Worked out on this phone from your own scans. Only you can see these patterns.')
+    h('p', { class: 'muted small' }, 'Worked out on this phone from your own scans. Only you can see these insights.')
   ];
 }
 
@@ -1672,18 +1647,21 @@ function calendarView(redraw) {
       h('h3', { style: 'margin:0;text-align:center;flex:1' }, title),
       h('button', { type: 'button', class: 'btn quiet compact', 'aria-label': 'Next ' + tl.mode, onclick: () => shift(1) }, '›')),
     state.scans.length ? body : h('div', { class: 'panel stack' }, h('p', {}, 'No scans yet. Your first scan will appear here.'), h('div', {}, h('button', { type: 'button', class: 'btn', onclick: () => beginScan() }, 'Start a scan'))),
-    h('p', { class: 'muted small' }, 'Colors show your score, based on your What matters settings. Only you can see this timeline.')
+    h('p', { class: 'muted small' }, 'Colors show your score, based on your What matters settings. Only you can see your history.')
   ];
 }
 
-routes.timeline = () => {
-  const redraw = () => { const y = window.scrollY; routes.timeline(); window.scrollTo(0, y); };
-  mount('timeline', h('section', { class: 'stack' },
-    h('h1', {}, 'Your timeline'),
-    h('div', { class: 'tabs', role: 'group', 'aria-label': 'Timeline view' },
-      [['patterns', 'Patterns'], ['calendar', 'Calendar']].map(([v, label]) => h('button', { type: 'button', 'aria-pressed': String(tl.view === v), onclick: () => { tl.view = v; redraw(); } }, label))),
-    tl.view === 'patterns' ? patternsView() : calendarView(redraw)));
+routes.insights = () => {
+  mount('insights', h('section', { class: 'stack' },
+    h('div', { class: 'row spread' }, h('h1', { style: 'margin:0' }, 'Insights'),
+      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('weights') }, 'Adjust what matters')),
+    patternsView()));
 };
+routes.history = () => {
+  const redraw = () => { const y = window.scrollY; routes.history(); window.scrollTo(0, y); };
+  mount('history', h('section', { class: 'stack' }, h('h1', {}, 'History'), calendarView(redraw)));
+};
+routes.timeline = routes.insights; // older links
 
 /* ---------------- What matters ---------------- */
 let weightTimer;
@@ -1695,9 +1673,10 @@ function queueWeightSync() {
 routes.weights = () => {
   const levels = [{ label: 'Off', value: 0 }, { label: 'A little', value: 1 }, { label: 'Some', value: 2 }, { label: 'A lot', value: 3 }];
   const setW = (k, v) => { state.weights[k] = v; store.set('weights', state.weights); queueWeightSync(); };
-  mount('weights', h('section', { class: 'stack' },
+  mount('insights', h('section', { class: 'stack' },
+    h('div', {}, h('button', { type: 'button', class: 'linkbtn', onclick: () => go('insights') }, '‹ Insights')),
     h('h1', {}, 'What matters to you'),
-    h('p', {}, 'Choose how much each measure counts toward your score. Change these anytime; your timeline updates right away. Shared place scores always weigh every measure equally, so they stay comparable for everyone.'),
+    h('p', {}, 'Choose how much each measure counts toward your score. Change these anytime; your scores and insights update right away. Shared place scores always weigh every measure equally, so they stay comparable for everyone.'),
     h('div', { class: 'panel' }, METRICS.map(m => {
       const buttons = levels.map(l => h('button', { type: 'button', 'aria-pressed': String(state.weights[m.key] === l.value),
         onclick: () => { setW(m.key, l.value); buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(levels[i].value === l.value))); } }, l.label));
@@ -1756,9 +1735,8 @@ routes.settings = () => {
       state.userId && navigator.clipboard && h('button', { type: 'button', class: 'btn quiet', onclick: () => navigator.clipboard.writeText(state.userId).then(() => toast('Code copied'), () => toast('Copying didn’t work. Write the code down instead.')) }, 'Copy code'),
       h('div', {}, h('label', { class: 'field', for: 'rcode' }, 'Restore history with a code'), codeIn),
       h('button', { type: 'button', class: 'btn quiet', onclick: restore }, 'Restore history'), msg),
-    h('div', { class: 'panel stack' }, h('h3', {}, 'Privacy and terms'),
+    h('div', { class: 'panel stack' }, h('h3', {}, 'Privacy'),
       h('button', { type: 'button', class: 'linkbtn', onclick: () => go('policy') }, 'Read the privacy policy'),
-      h('div', {}, h('button', { type: 'button', class: 'linkbtn', onclick: () => go('terms') }, 'Read the terms of service')),
       h('div', {}, h('button', { type: 'button', class: 'linkbtn', onclick: () => go('measures') }, 'How the measures and scores work')),
       h('div', {}, h('button', { type: 'button', class: 'btn danger', onclick: removeAll }, 'Delete all my data'))),
     h('p', { class: 'muted small' }, `Version ${CONFIG.APP_VERSION}${api.enabled() ? '' : ', demo mode'}`),
@@ -1824,7 +1802,7 @@ const POLICY_EFFECTIVE = 'November 13, 2026';
 routes.policy = () => {
   const sec = (title, ...paras) => h('div', {}, h('h2', {}, title), paras.map(t => h('p', {}, t)));
   const back = () => { if (history.length > 1) history.back(); else go('home', {}, true); };
-  mount(agreedToAll() ? 'settings' : null, h('section', { class: 'stack' },
+  mount(state.consented ? 'settings' : null, h('section', { class: 'stack' },
     h('h1', {}, 'Privacy policy'),
     h('p', { class: 'muted' }, `appmospherics, operated by Meredith Banasiak LLC. Effective ${POLICY_EFFECTIVE}.`),
     h('p', {}, 'appmospherics measures the places you spend time, such as their sound, light, crowding and other conditions, and helps you learn which environments help you feel your best. This page explains what the app collects, what it does with it, and what it doesn’t do.'),
@@ -1863,57 +1841,12 @@ routes.policy = () => {
     h('button', { type: 'button', class: 'btn quiet wide', onclick: back }, 'Back')));
 };
 
-/* ---------------- Terms of Service ---------------- */
-const TERMS_EFFECTIVE = 'November 18, 2026';
-routes.terms = () => {
-  const sec = (title, ...paras) => h('div', {}, h('h2', {}, title), paras.map(t => h('p', {}, t)));
-  const back = () => { if (history.length > 1) history.back(); else go('home', {}, true); };
-  mount(agreedToAll() ? 'settings' : null, h('section', { class: 'stack' },
-    h('h1', {}, 'Terms of Service'),
-    h('p', { class: 'muted' }, `appmospherics, operated by Meredith Banasiak LLC. Effective ${TERMS_EFFECTIVE}.`),
-    h('p', {}, 'These terms are an agreement between you and Meredith Banasiak LLC (“we” or “us”), which operates appmospherics. By using the app, you agree to these terms and to our Privacy policy. If you don’t agree, please don’t use the app.'),
-    sec('Who can use appmospherics',
-      'You must be 18 or older to use the app.'),
-    sec('What the app is, and what it isn’t',
-      'appmospherics is a free, experimental research tool that helps you notice how places affect you. Its readings are estimates from your phone’s microphone and camera, and its scores and colors are based on research and building standards as described on the How the measures work page.',
-      'The app is not a medical device, and nothing in it is medical, health, safety, legal or professional advice. Scores are not safety, health or accessibility certifications. Don’t rely on the app in an emergency or for any decision where an inaccurate reading could cause harm. Use your own judgment about where you go and how long you stay.',
-      'We may change, pause or stop the app or any of its features at any time. Your timeline is kept on your phone, so it can be lost if you clear your browser data or change phones without your recovery code.'),
-    sec('Using the app fairly',
-      'Please enter scans honestly, for places you are actually in. Don’t enter names, contact details or other personal information about yourself or anyone else, including in place names. Don’t enter offensive, false or misleading content, and don’t use the app to harass anyone or to damage a business’s reputation with readings you know are wrong.',
-      'Don’t try to disrupt the app, get around its limits, access data that isn’t yours, or collect the app’s data with automated tools. Respect the places you scan and the people in them, and follow any rules a venue sets.',
-      'We may remove scans or block codes that break these terms.'),
-    sec('Your scans and the shared place data',
-      'Your scans are combined with other people’s to build shared information about places. To make that possible, you give Meredith Banasiak LLC a worldwide, royalty-free, non-exclusive, perpetual permission to store, use, copy, combine, analyze, publish, share and license the scans you submit, in the ways described in the Privacy policy, including as combined place-level data and in research.',
-      'You can still delete your scans at any time with Delete all my data in Settings. Deleting removes them from our records and from future place summaries. It can’t undo research findings or combined data that were already published or shared before you deleted them.',
-      'If you send us feedback or suggestions, we may use them freely, with no obligation to you.'),
-    sec('Information about places',
-      'Place scores reflect the scans people made at particular times. They are not our review or rating of any business, and conditions change from hour to hour. Place names and locations come from OpenStreetMap or from people using the app, and we don’t guarantee they are accurate or complete.'),
-    sec('Who owns the app',
-      'The app, including its name, logo, design, text, scoring method, code and the combined place data, belongs to Meredith Banasiak LLC. You may use the app for your own personal, noncommercial purposes. You may not copy, sell, adapt or reuse the app, its code, its design or its data, or use the appmospherics name or logo, without our written permission.',
-      'Some parts belong to others and are used under their own terms. Place data is © OpenStreetMap contributors and available under the Open Database License. The fonts are used under their own open licenses. The standards and research cited on the How the measures work page belong to their authors and publishers.'),
-    sec('No warranties',
-      'The app is provided “as is” and “as available,” without warranties of any kind, whether express or implied, including warranties of accuracy, fitness for a particular purpose and non-infringement. We don’t promise the app will always be available, error-free or secure, or that your data will never be lost.'),
-    sec('Limits on our liability',
-      'To the fullest extent allowed by law, Meredith Banasiak LLC is not liable for any indirect, incidental, special, consequential or punitive damages, or for any loss of data, arising from your use of the app or from decisions you make based on it. Our total liability for any claim related to the app is limited to fifty U.S. dollars ($50). Some places don’t allow these limits, so they may not fully apply to you.',
-      'If your misuse of the app or your breach of these terms leads to a claim against us, you agree to be responsible for it.'),
-    sec('Ending use',
-      'You can stop using the app at any time, and you can delete your scans in Settings. The parts of these terms about permission to use scans already shared, ownership, warranties and liability continue after you stop.'),
-    sec('Changes to these terms',
-      'If we change these terms, we’ll update the effective date above. If a change is significant, the app will ask you to agree again before you continue.'),
-    sec('Colorado law',
-      'These terms are governed by the laws of the State of Colorado, without regard to its conflict-of-law rules. Any dispute about them will be handled in the state or federal courts located in Colorado, unless the law where you live gives you a right to bring it elsewhere.'),
-    sec('Contact',
-      'Questions about these terms: appmospherics@gmail.com.'),
-    h('button', { type: 'button', class: 'btn quiet wide', onclick: back }, 'Back')));
-};
-
 
 /* =====================================================================
    START
    ===================================================================== */
 $tabbar.querySelectorAll('button').forEach(b => b.addEventListener('click', () => go(b.dataset.tab)));
 document.getElementById('policyLink').addEventListener('click', () => go('policy'));
-document.getElementById('termsLink').addEventListener('click', () => go('terms'));
 document.getElementById('modeNote').textContent = api.enabled() ? '' : 'Demo mode';
 window.addEventListener('online', syncPending);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncPending(); });
