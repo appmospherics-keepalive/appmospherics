@@ -259,7 +259,7 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
     <span class="mode-note" id="modeNote"></span>
   </header>
   <main id="view"></main>
-  <p class="attrib"><button type="button" class="linkbtn small" id="policyLink">Privacy policy</button></p>
+  <p class="attrib"><button type="button" class="linkbtn small" id="termsLink">Terms</button> · <button type="button" class="linkbtn small" id="policyLink">Privacy policy</button></p>
   <p class="attrib" style="margin-top:4px">Place data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
 </div>
 
@@ -281,7 +281,10 @@ table.breakdown td:last-child { text-align: right; font-weight: 700; white-space
    ===================================================================== */
 // === CONFIG START
 const CONFIG = {
-  APP_VERSION: '2.0.0-alpha.16',
+  APP_VERSION: '2.0.0-alpha.17',
+
+  // Raise this when the Terms of Service change enough that everyone should agree again.
+  TERMS_VERSION: 1,
 
   // Paste your Google Apps Script web app URL here (see the setup guide).
   // Leave empty to run in demo mode: scans are saved on this phone only.
@@ -599,6 +602,7 @@ const validScan = s => s && typeof s === 'object' && typeof s.scan_id === 'strin
 const state = {
   userId: normalizeCode(store.get('userId', null)),
   consented: store.get('consented', false) === true,
+  termsVersion: Number(store.get('termsVersion', 0)) || 0,
   installSeen: store.get('installSeen', false) === true,
   cityAsked: store.get('citySkipped', false) === true,
   city: String(store.get('city', '') || ''),
@@ -1069,7 +1073,8 @@ function show(st) {
   stopReading();
   let name = st && st.v, params = (st && st.p) || {};
   if (st && st.v === 'policy') return routes.policy();
-  if (!state.consented) return onboard();
+  if (st && st.v === 'terms') return routes.terms();
+  if (!agreedToAll()) return onboard();
   if (SCAN_STEPS.includes(name) && !state.draft) name = 'home';
   if (name === 'result' && !state.scans.some(s => s.scan_id === params.id)) name = 'home';
   (routes[name] || routes.home)(params);
@@ -1078,7 +1083,23 @@ window.addEventListener('popstate', e => show(e.state));
 
 /* ---------------- First run ---------------- */
 const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const agreedToAll = () => state.consented && state.termsVersion >= CONFIG.TERMS_VERSION;
+function agree() {
+  state.consented = true; state.termsVersion = CONFIG.TERMS_VERSION;
+  store.set('consented', true); store.set('termsVersion', CONFIG.TERMS_VERSION);
+  onboard();
+}
+const agreeLinks = () => h('p', { class: 'small' }, 'By tapping I agree, you agree to the ',
+  h('button', { type: 'button', class: 'linkbtn small', onclick: () => go('terms') }, 'Terms of Service'), ' and ',
+  h('button', { type: 'button', class: 'linkbtn small', onclick: () => go('policy') }, 'Privacy policy'), '.');
 function onboard() {
+  if (state.consented && state.termsVersion < CONFIG.TERMS_VERSION) {
+    return mount(null, h('section', { class: 'stack' },
+      h('h1', {}, state.termsVersion ? 'Our terms have changed' : 'We’ve added Terms of Service'),
+      h('p', {}, 'They explain how the app may be used, who owns it, and what you allow us to do with your scans, in the same plain language as the privacy policy. Nothing about what the app collects has changed.'),
+      agreeLinks(),
+      h('button', { type: 'button', class: 'btn wide', onclick: agree }, 'I agree')));
+  }
   if (!state.consented) {
     return mount(null, h('section', { class: 'stack' },
       h('h1', {}, 'Before you start'),
@@ -1090,8 +1111,8 @@ function onboard() {
         h('li', {}, h('strong', {}, 'Other people can’t see your timeline. '), 'We can see scans in our records, linked only to your random code. Anything shared or published combines many people’s scans.'),
         h('li', {}, h('strong', {}, 'You can delete your scans '), 'anytime in Settings.'))),
       h('p', { class: 'muted small' }, 'appmospherics is not a medical tool, and its readings are estimates. You must be 18 or older to use the app.'),
-      h('button', { type: 'button', class: 'linkbtn', onclick: () => go('policy') }, 'Read the full privacy policy'),
-      h('button', { type: 'button', class: 'btn wide', onclick: () => { state.consented = true; store.set('consented', true); onboard(); } }, 'I agree')));
+      agreeLinks(),
+      h('button', { type: 'button', class: 'btn wide', onclick: agree }, 'I agree')));
   }
   if (!isStandalone() && !state.installSeen) {
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -1735,8 +1756,9 @@ routes.settings = () => {
       state.userId && navigator.clipboard && h('button', { type: 'button', class: 'btn quiet', onclick: () => navigator.clipboard.writeText(state.userId).then(() => toast('Code copied'), () => toast('Copying didn’t work. Write the code down instead.')) }, 'Copy code'),
       h('div', {}, h('label', { class: 'field', for: 'rcode' }, 'Restore history with a code'), codeIn),
       h('button', { type: 'button', class: 'btn quiet', onclick: restore }, 'Restore history'), msg),
-    h('div', { class: 'panel stack' }, h('h3', {}, 'Privacy'),
+    h('div', { class: 'panel stack' }, h('h3', {}, 'Privacy and terms'),
       h('button', { type: 'button', class: 'linkbtn', onclick: () => go('policy') }, 'Read the privacy policy'),
+      h('div', {}, h('button', { type: 'button', class: 'linkbtn', onclick: () => go('terms') }, 'Read the terms of service')),
       h('div', {}, h('button', { type: 'button', class: 'linkbtn', onclick: () => go('measures') }, 'How the measures and scores work')),
       h('div', {}, h('button', { type: 'button', class: 'btn danger', onclick: removeAll }, 'Delete all my data'))),
     h('p', { class: 'muted small' }, `Version ${CONFIG.APP_VERSION}${api.enabled() ? '' : ', demo mode'}`),
@@ -1802,7 +1824,7 @@ const POLICY_EFFECTIVE = 'November 13, 2026';
 routes.policy = () => {
   const sec = (title, ...paras) => h('div', {}, h('h2', {}, title), paras.map(t => h('p', {}, t)));
   const back = () => { if (history.length > 1) history.back(); else go('home', {}, true); };
-  mount(state.consented ? 'settings' : null, h('section', { class: 'stack' },
+  mount(agreedToAll() ? 'settings' : null, h('section', { class: 'stack' },
     h('h1', {}, 'Privacy policy'),
     h('p', { class: 'muted' }, `appmospherics, operated by Meredith Banasiak LLC. Effective ${POLICY_EFFECTIVE}.`),
     h('p', {}, 'appmospherics measures the places you spend time, such as their sound, light, crowding and other conditions, and helps you learn which environments help you feel your best. This page explains what the app collects, what it does with it, and what it doesn’t do.'),
@@ -1841,12 +1863,57 @@ routes.policy = () => {
     h('button', { type: 'button', class: 'btn quiet wide', onclick: back }, 'Back')));
 };
 
+/* ---------------- Terms of Service ---------------- */
+const TERMS_EFFECTIVE = 'November 18, 2026';
+routes.terms = () => {
+  const sec = (title, ...paras) => h('div', {}, h('h2', {}, title), paras.map(t => h('p', {}, t)));
+  const back = () => { if (history.length > 1) history.back(); else go('home', {}, true); };
+  mount(agreedToAll() ? 'settings' : null, h('section', { class: 'stack' },
+    h('h1', {}, 'Terms of Service'),
+    h('p', { class: 'muted' }, `appmospherics, operated by Meredith Banasiak LLC. Effective ${TERMS_EFFECTIVE}.`),
+    h('p', {}, 'These terms are an agreement between you and Meredith Banasiak LLC (“we” or “us”), which operates appmospherics. By using the app, you agree to these terms and to our Privacy policy. If you don’t agree, please don’t use the app.'),
+    sec('Who can use appmospherics',
+      'You must be 18 or older to use the app.'),
+    sec('What the app is, and what it isn’t',
+      'appmospherics is a free, experimental research tool that helps you notice how places affect you. Its readings are estimates from your phone’s microphone and camera, and its scores and colors are based on research and building standards as described on the How the measures work page.',
+      'The app is not a medical device, and nothing in it is medical, health, safety, legal or professional advice. Scores are not safety, health or accessibility certifications. Don’t rely on the app in an emergency or for any decision where an inaccurate reading could cause harm. Use your own judgment about where you go and how long you stay.',
+      'We may change, pause or stop the app or any of its features at any time. Your timeline is kept on your phone, so it can be lost if you clear your browser data or change phones without your recovery code.'),
+    sec('Using the app fairly',
+      'Please enter scans honestly, for places you are actually in. Don’t enter names, contact details or other personal information about yourself or anyone else, including in place names. Don’t enter offensive, false or misleading content, and don’t use the app to harass anyone or to damage a business’s reputation with readings you know are wrong.',
+      'Don’t try to disrupt the app, get around its limits, access data that isn’t yours, or collect the app’s data with automated tools. Respect the places you scan and the people in them, and follow any rules a venue sets.',
+      'We may remove scans or block codes that break these terms.'),
+    sec('Your scans and the shared place data',
+      'Your scans are combined with other people’s to build shared information about places. To make that possible, you give Meredith Banasiak LLC a worldwide, royalty-free, non-exclusive, perpetual permission to store, use, copy, combine, analyze, publish, share and license the scans you submit, in the ways described in the Privacy policy, including as combined place-level data and in research.',
+      'You can still delete your scans at any time with Delete all my data in Settings. Deleting removes them from our records and from future place summaries. It can’t undo research findings or combined data that were already published or shared before you deleted them.',
+      'If you send us feedback or suggestions, we may use them freely, with no obligation to you.'),
+    sec('Information about places',
+      'Place scores reflect the scans people made at particular times. They are not our review or rating of any business, and conditions change from hour to hour. Place names and locations come from OpenStreetMap or from people using the app, and we don’t guarantee they are accurate or complete.'),
+    sec('Who owns the app',
+      'The app, including its name, logo, design, text, scoring method, code and the combined place data, belongs to Meredith Banasiak LLC. You may use the app for your own personal, noncommercial purposes. You may not copy, sell, adapt or reuse the app, its code, its design or its data, or use the appmospherics name or logo, without our written permission.',
+      'Some parts belong to others and are used under their own terms. Place data is © OpenStreetMap contributors and available under the Open Database License. The fonts are used under their own open licenses. The standards and research cited on the How the measures work page belong to their authors and publishers.'),
+    sec('No warranties',
+      'The app is provided “as is” and “as available,” without warranties of any kind, whether express or implied, including warranties of accuracy, fitness for a particular purpose and non-infringement. We don’t promise the app will always be available, error-free or secure, or that your data will never be lost.'),
+    sec('Limits on our liability',
+      'To the fullest extent allowed by law, Meredith Banasiak LLC is not liable for any indirect, incidental, special, consequential or punitive damages, or for any loss of data, arising from your use of the app or from decisions you make based on it. Our total liability for any claim related to the app is limited to fifty U.S. dollars ($50). Some places don’t allow these limits, so they may not fully apply to you.',
+      'If your misuse of the app or your breach of these terms leads to a claim against us, you agree to be responsible for it.'),
+    sec('Ending use',
+      'You can stop using the app at any time, and you can delete your scans in Settings. The parts of these terms about permission to use scans already shared, ownership, warranties and liability continue after you stop.'),
+    sec('Changes to these terms',
+      'If we change these terms, we’ll update the effective date above. If a change is significant, the app will ask you to agree again before you continue.'),
+    sec('Colorado law',
+      'These terms are governed by the laws of the State of Colorado, without regard to its conflict-of-law rules. Any dispute about them will be handled in the state or federal courts located in Colorado, unless the law where you live gives you a right to bring it elsewhere.'),
+    sec('Contact',
+      'Questions about these terms: appmospherics@gmail.com.'),
+    h('button', { type: 'button', class: 'btn quiet wide', onclick: back }, 'Back')));
+};
+
 
 /* =====================================================================
    START
    ===================================================================== */
 $tabbar.querySelectorAll('button').forEach(b => b.addEventListener('click', () => go(b.dataset.tab)));
 document.getElementById('policyLink').addEventListener('click', () => go('policy'));
+document.getElementById('termsLink').addEventListener('click', () => go('terms'));
 document.getElementById('modeNote').textContent = api.enabled() ? '' : 'Demo mode';
 window.addEventListener('online', syncPending);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncPending(); });
